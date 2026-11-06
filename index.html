@@ -4,74 +4,113 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Ruang Komunal Terangkat Adaptif Banjir — Denpasar</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0f172a;--panel:rgba(30,41,59,0.9);--text:#e2e8f0;--accent:#38bdf8;--border:rgba(255,255,255,0.1)}
-*{box-sizing:border-box}
-html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);font-family:'Inter',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased}
-canvas{display:block;outline:none}
+/* ========== RESET & BASE ========== */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;background:#0a0f1a;color:#e2e8f0}
 
-/* --- INTRO SLIDES CSS --- */
-#intro-overlay{position:fixed;inset:0;background:linear-gradient(135deg, #0f172a 0%, #1e293b 100%);z-index:9999;display:flex;flex-direction:column;justify-content:center;align-items:center;transition:opacity 0.8s ease, visibility 0.8s;}
-#intro-overlay.hidden{opacity:0;visibility:hidden;}
-.slide{display:none;opacity:0;transform:translateY(20px);transition:all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);text-align:center;max-width:800px;padding:40px;}
-.slide.active{display:block;opacity:1;transform:translateY(0);}
-.slide h1{font-size:48px;font-weight:800;line-height:1.1;margin-bottom:20px;letter-spacing:-1px;background:linear-gradient(to right, #38bdf8, #818cf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-.slide h2{font-size:32px;font-weight:700;margin-bottom:16px;color:#f8fafc;}
-.slide p{font-size:18px;line-height:1.6;color:#94a3b8;margin-bottom:30px;}
-.slide .tagline{font-size:14px;text-transform:uppercase;letter-spacing:2px;color:#38bdf8;font-weight:700;margin-bottom:10px;display:block;}
-.slide .icon{font-size:64px;margin-bottom:20px;}
-.nav-btns{margin-top:30px;display:flex;gap:16px;justify-content:center;}
-.btn-slide{background:#38bdf8;color:#0f172a;border:none;padding:14px 32px;font-size:16px;font-weight:700;border-radius:99px;cursor:pointer;transition:all 0.3s;}
-.btn-slide:hover{transform:translateY(-2px);box-shadow:0 10px 20px rgba(56,189,248,0.3);}
-.btn-slide.secondary{background:transparent;border:1px solid #475569;color:#e2e8f0;}
-.btn-slide.secondary:hover{border-color:#38bdf8;color:#38bdf8;box-shadow:none;}
-.dots{display:flex;gap:8px;margin-top:40px;}
-.dot{width:10px;height:10px;border-radius:50%;background:#334155;transition:0.3s;}
-.dot.active{background:#38bdf8;transform:scale(1.2);}
-/* ------------------------- */
+/* ========== INTRO SLIDER ========== */
+#intro-container{
+  position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;
+  background:linear-gradient(135deg,#0a0f1a 0%,#111c2e 50%,#0a0f1a 100%);
+  transition:opacity 1s ease, visibility 1s ease;
+}
+#intro-container.hidden{opacity:0;visibility:hidden;pointer-events:none}
 
-button{font:inherit;cursor:pointer;border:0;border-radius:6px;padding:8px 12px;background:#fff;color:#0f172a;font-weight:600;transition:all .2s;box-shadow:0 1px 3px rgba(0,0,0,0.1);border:1px solid var(--border)}
-button:hover:not(:disabled){background:#f1f5f9;box-shadow:0 4px 6px rgba(0,0,0,0.05);transform:translateY(-1px)}
-button:disabled{opacity:.4;cursor:default;transform:none;box-shadow:none}
-.card{background:var(--panel);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:12px;box-shadow:0 10px 25px rgba(0,0,0,0.5)}
-#panel{position:fixed;left:20px;top:20px;width:340px;max-height:calc(100% - 40px);display:flex;flex-direction:column;z-index:5;transition:opacity 0.5s;}
-#ph{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;font-weight:800;border-bottom:1px solid var(--border);letter-spacing:0.5px}
+.intro-bg{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.intro-bg .orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:0.4;animation:float 20s infinite ease-in-out}
+.intro-bg .orb:nth-child(1){width:600px;height:600px;background:#2563eb;top:-200px;left:-100px;animation-delay:0s}
+.intro-bg .orb:nth-child(2){width:500px;height:500px;background:#0ea5e9;bottom:-150px;right:-100px;animation-delay:-7s}
+.intro-bg .orb:nth-child(3){width:400px;height:400px;background:#8b5cf6;top:40%;left:50%;animation-delay:-14s}
+
+@keyframes float{
+  0%,100%{transform:translate(0,0) scale(1)}
+  25%{transform:translate(50px,-30px) scale(1.1)}
+  50%{transform:translate(-30px,50px) scale(0.9)}
+  75%{transform:translate(30px,30px) scale(1.05)}
+}
+
+.slide{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;padding:60px 40px;
+  opacity:0;visibility:hidden;transition:opacity 0.8s ease, visibility 0.8s ease;
+  text-align:center;
+}
+.slide.active{opacity:1;visibility:visible}
+
+.slide .label{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:4px;color:#38bdf8;margin-bottom:24px;opacity:0;transform:translateY(20px);animation:slideUp 0.8s 0.2s forwards}
+.slide .title{font-size:clamp(28px,5vw,56px);font-weight:800;line-height:1.1;letter-spacing:-0.03em;max-width:900px;margin-bottom:20px;opacity:0;transform:translateY(20px);animation:slideUp 0.8s 0.4s forwards}
+.slide .title .accent{color:#38bdf8}
+.slide .subtitle{font-size:clamp(14px,1.5vw,18px);font-weight:400;line-height:1.7;color:#94a3b8;max-width:650px;margin-bottom:40px;opacity:0;transform:translateY(20px);animation:slideUp 0.8s 0.6s forwards}
+.slide .visual{margin-top:20px;opacity:0;transform:translateY(20px);animation:slideUp 0.8s 0.8s forwards}
+
+@keyframes slideUp{to{opacity:1;transform:translateY(0)}}
+
+.icon-group{display:flex;gap:40px;justify-content:center;flex-wrap:wrap}
+.icon-item{display:flex;flex-direction:column;align-items:center;gap:12px;padding:24px 32px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:16px;min-width:140px;backdrop-filter:blur(10px);transition:transform 0.3s ease, border-color 0.3s ease}
+.icon-item:hover{transform:translateY(-5px);border-color:rgba(56,189,248,0.4)}
+.icon-item svg{width:40px;height:40px;stroke:#38bdf8;fill:none;stroke-width:1.5}
+.icon-item span{font-size:13px;font-weight:500;color:#cbd5e1}
+
+.nav-dots{position:absolute;bottom:40px;left:50%;transform:translateX(-50%);display:flex;gap:12px;z-index:10}
+.nav-dots .dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.2);cursor:pointer;transition:all 0.3s ease}
+.nav-dots .dot.active{background:#38bdf8;transform:scale(1.3)}
+.nav-dots .dot:hover{background:rgba(255,255,255,0.5)}
+
+.nav-buttons{position:absolute;bottom:40px;right:40px;display:flex;gap:12px;z-index:10}
+.nav-buttons button{padding:12px 28px;border:1px solid rgba(255,255,255,0.15);border-radius:8px;background:rgba(255,255,255,0.05);color:#e2e8f0;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;backdrop-filter:blur(10px);transition:all 0.3s ease;display:flex;align-items:center;gap:8px}
+.nav-buttons button:hover{background:rgba(56,189,248,0.15);border-color:#38bdf8;color:#38bdf8}
+.nav-buttons button.primary{background:#2563eb;border-color:#2563eb;color:#fff}
+.nav-buttons button.primary:hover{background:#1d4ed8}
+.nav-buttons button:disabled{opacity:0.3;cursor:default}
+
+/* ========== SIMULATION UI ========== */
+#sim-container{
+  position:fixed;inset:0;z-index:1;display:none;
+  background:#cbd5e1;font-family:'Inter',sans-serif;color:#0f172a;
+  -webkit-font-smoothing:antialiased;overflow:hidden;
+}
+#sim-container.active{display:block}
+
+.sim-card{background:rgba(255,255,255,0.95);backdrop-filter:blur(16px);border:1px solid rgba(0,0,0,0.1);border-radius:12px;box-shadow:0 10px 25px rgba(0,0,0,0.1)}
+#panel{position:fixed;left:20px;top:20px;width:340px;max-height:calc(100% - 40px);display:flex;flex-direction:column;z-index:5}
+#ph{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;font-weight:800;border-bottom:1px solid rgba(0,0,0,0.1);letter-spacing:0.5px}
 #pb{overflow-y:auto;padding:16px}.collapsed #pb{display:none}
 h1{font-size:16px;line-height:1.3;margin:0 0 4px;font-weight:700}
-.sub{margin:0 0 16px;font-size:12px;color:#94a3b8}
+.sub{margin:0 0 16px;font-size:12px;color:#64748b}
 .std{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px}
-.std span{background:rgba(56,189,248,0.1);color:var(--accent);border-radius:4px;padding:4px 8px;font-size:11px;font-weight:600;border:1px solid rgba(56,189,248,0.2)}
+.std span{background:#eff6ff;color:#2563eb;border-radius:4px;padding:4px 8px;font-size:11px;font-weight:600;border:1px solid #bfdbfe}
 #modes{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
-#modes button{text-align:left;padding:10px;font-size:12px;background:rgba(255,255,255,0.05);color:#e2e8f0;border:1px solid var(--border);box-shadow:none}
-#modes button.on{border-color:var(--accent);background:rgba(56,189,248,0.15);color:var(--accent)}
-#reset{width:100%;margin-bottom:16px;background:rgba(239,68,68,0.1);color:#f87171;border-color:rgba(239,68,68,0.2)}
-#step{background:rgba(0,0,0,0.3);border-radius:8px;padding:14px;margin-bottom:16px;border:1px solid var(--border)}#step[hidden]{display:none}
-#sc{font-size:10px;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:1px}
+#modes button{text-align:left;padding:10px;font-size:12px;background:#f8fafc;border:1px solid rgba(0,0,0,0.1);box-shadow:none;border-radius:6px;cursor:pointer;transition:all .2s;font-family:inherit;font-weight:600;color:#0f172a}
+#modes button.on{border-color:#2563eb;background:#eff6ff;color:#2563eb;box-shadow:0 0 0 1px #2563eb}
+#reset{width:100%;margin-bottom:16px;background:#fef2f2;color:#dc2626;border-color:#fecaca;border-radius:6px;padding:8px 12px;font-family:inherit;font-weight:600;cursor:pointer;border:1px solid #fecaca}
+#step{background:#fff;border-radius:8px;padding:14px;margin-bottom:16px;border:1px solid rgba(0,0,0,0.1);box-shadow:0 4px 12px rgba(0,0,0,0.05)}#step[hidden]{display:none}
+#sc{font-size:10px;font-weight:800;color:#2563eb;text-transform:uppercase;letter-spacing:1px}
 #st{margin:4px 0 8px;font-size:15px;font-weight:700}
-#sn{margin:0 0 12px;font-size:13px;line-height:1.6;color:#cbd5e1;max-height:20vh;overflow:auto}
-.bar{height:4px;background:rgba(255,255,255,0.1);border-radius:2px;overflow:hidden;margin-bottom:12px}.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width 0.1s linear}
-.ctl{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.ctl button{padding:6px 2px;font-size:11px}
-.ctl button#nx{background:var(--accent);color:#0f172a;border-color:var(--accent);font-weight:700}
-.tg{display:flex;gap:16px;font-size:12px;font-weight:600;margin:12px 0;color:#94a3b8}
+#sn{margin:0 0 12px;font-size:13px;line-height:1.6;color:#334155;max-height:20vh;overflow:auto}
+.bar{height:4px;background:#f1f5f9;border-radius:2px;overflow:hidden;margin-bottom:12px}.bar i{display:block;height:100%;width:0;background:#2563eb;transition:width 0.1s linear}
+.ctl{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.ctl button{padding:6px 2px;font-size:11px;font-family:inherit;font-weight:600;cursor:pointer;border-radius:6px;border:1px solid rgba(0,0,0,0.1);background:#f8fafc;color:#0f172a}
+.ctl button#nx{background:#2563eb;color:#fff;border-color:#2563eb;font-weight:700}
+.tg{display:flex;gap:16px;font-size:12px;font-weight:600;margin:12px 0;color:#475569}
 .tg label{display:flex;align-items:center;gap:6px;cursor:pointer}
-#legend{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;font-size:11px;color:#94a3b8}
+#legend{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;font-size:11px;color:#475569}
 #legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
-#hud{position:fixed;right:20px;top:20px;padding:12px 16px;font-size:12px;z-index:4;min-width:200px;transition:opacity 0.5s;}
-#hud div{display:flex;justify-content:space-between;gap:16px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
+#hud{position:fixed;right:20px;top:20px;padding:12px 16px;font-size:12px;z-index:4;min-width:200px}
+#hud div{display:flex;justify-content:space-between;gap:16px;padding:4px 0;border-bottom:1px solid rgba(0,0,0,0.05)}
 #hud div:last-child{border-bottom:none}
-#hud b{font-weight:800;color:#fff}
-#hud span{color:#94a3b8}
+#hud b{font-weight:800;color:#0f172a}
+#hud span{color:#64748b;font-weight:600}
 
-#balloon{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);width:520px;max-width:90vw;padding:16px 24px;background:rgba(15,23,42,0.9);backdrop-filter:blur(10px);border:1px solid rgba(56,189,248,0.3);border-radius:12px;box-shadow:0 20px 40px rgba(0,0,0,0.5);z-index:10;pointer-events:none;opacity:0;transition:opacity 0.5s;font-size:14px;line-height:1.6;color:#e2e8f0;text-align:center}
-#balloon .t{display:block;margin-bottom:6px;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--accent);font-weight:800}
+#balloon{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);width:520px;max-width:90vw;padding:16px 24px;background:rgba(255,255,255,0.95);backdrop-filter:blur(10px);border:1px solid rgba(0,0,0,0.1);border-radius:12px;box-shadow:0 20px 40px rgba(0,0,0,0.15);z-index:10;pointer-events:none;opacity:0;transition:opacity 0.5s;font-size:14px;line-height:1.6;color:#0f172a;text-align:center}
+#balloon .t{display:block;margin-bottom:6px;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#2563eb;font-weight:800}
 
-#info{position:fixed;right:20px;bottom:20px;width:320px;max-height:60vh;overflow-y:auto;padding:16px;z-index:4;font-size:13px;line-height:1.6}
-#info[hidden]{display:none}#info h4{margin:0 0 8px;font-size:15px;padding-right:24px;color:#fff}
-#info h5{margin:12px 0 4px;font-size:10px;text-transform:uppercase;color:var(--accent);letter-spacing:1px;font-weight:800}#info p{margin:0;color:#cbd5e1}
-#info button{position:absolute;right:12px;top:12px;padding:4px 8px;background:rgba(255,255,255,0.1);border-radius:4px;color:#fff}
+#info{position:fixed;right:20px;bottom:20px;width:320px;max-height:60vh;overflow-y:auto;padding:16px;z-index:4;font-size:13px;line-height:1.6;background:rgba(255,255,255,0.95);backdrop-filter:blur(16px);border:1px solid rgba(0,0,0,0.1);border-radius:12px;box-shadow:0 10px 25px rgba(0,0,0,0.1)}
+#info[hidden]{display:none}#info h4{margin:0 0 8px;font-size:15px;padding-right:24px;color:#0f172a}
+#info h5{margin:12px 0 4px;font-size:10px;text-transform:uppercase;color:#2563eb;letter-spacing:1px;font-weight:800}#info p{margin:0;color:#334155}
+#info button{position:absolute;right:12px;top:12px;padding:4px 8px;background:#f1f5f9;border-radius:4px;color:#0f172a;cursor:pointer;border:none;font-weight:600}
 #labels{position:fixed;inset:0;pointer-events:none;z-index:2;overflow:hidden}
-#labels div{position:absolute;left:0;top:0;font-size:10px;font-weight:700;background:rgba(15,23,42,0.9);color:#fff;border-radius:4px;padding:3px 8px;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1);letter-spacing:0.5px}
+#labels div{position:absolute;left:0;top:0;font-size:10px;font-weight:700;background:rgba(255,255,255,0.9);color:#0f172a;border-radius:4px;padding:3px 8px;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,0.1);border:1px solid rgba(0,0,0,0.1);letter-spacing:0.5px}
 </style>
 <script type="importmap">
 {
@@ -84,82 +123,170 @@ h1{font-size:16px;line-height:1.3;margin:0 0 4px;font-weight:700}
 </head>
 <body>
 
-<!-- INTRO SLIDES OVERLAY -->
-<div id="intro-overlay">
-  <div class="slide active">
-    <span class="tagline">Proyek Arsitektur Regeneratif</span>
-    <h1>Ruang Komunal Terangkat Adaptif Banjir</h1>
-    <p>Denpasar, Bali · Community Food Hall & Perpustakaan<br>Integrasi Sistem Retensi, Filtrasi, dan Pendinginan Pasif.</p>
-  </div>
-  
-  <div class="slide">
-    <div class="icon">🌊</div>
-    <span class="tagline">Isu & Masalah</span>
-    <h2>Tantangan Banjir & Ruang Terbatas</h2>
-    <p>Banjir ekstrem dan luapan air sering melumpuhkan aktivitas warga. Di sisi lain, ruang komunal yang aman dan dapat diandalkan saat krisis masih sangat minim. Pendekatan konvensional (menahan air dengan tanggul) justru memperparah banjir di wilayah sekitar.</p>
-  </div>
+<!-- ==================== INTRO SLIDER ==================== -->
+<div id="intro-container">
+  <div class="intro-bg"><div class="orb"></div><div class="orb"></div><div class="orb"></div></div>
 
-  <div class="slide">
-    <div class="icon">🏗️</div>
-    <span class="tagline">Strategi Penanganan</span>
-    <h2>Memberi Ruang pada Air (Site-First)</h2>
-    <p>Bangunan diangkat ke elevasi +2,6 m (DFE) untuk memberikan ruang retensi di bawahnya (Amfiteater). Air ditampung, disaring melalui sistem Rockflow dan Filtrasi, lalu dialirkan ke Tangki Penampung. Jika penuh, air melimpah ke Kolam Retensi dan dilepas perlahan ke kota.</p>
-  </div>
-
-  <div class="slide">
-    <div class="icon">⚙️</div>
-    <span class="tagline">Simulasi Sistem</span>
-    <h2>Siap Memulai Eksplorasi?</h2>
-    <p>Mari kita bedah bagaimana setiap teknologi—dari Blue-Green Roof hingga Beehive Cooling—bekerja secara step-by-step dalam menghadapi kondisi Kering, Banjir, dan Pascabanjir.</p>
-    <div class="nav-btns">
-      <button class="btn-slide" onclick="startSimulation()">Mulai Simulasi 3D ▶</button>
+  <!-- Slide 1: Title -->
+  <div class="slide active" data-slide="0">
+    <div class="label">Regenerative Architecture</div>
+    <h1 class="title">Ruang Komunal<br><span class="accent">Terangkat Adaptif</span></h1>
+    <p class="subtitle">Sistem ruang publik yang tidak hanya bertahan, tetapi hidup berdampingan dengan air. Sebuah visi baru untuk Denpasar.</p>
+    <div class="visual">
+      <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap">
+        <div class="icon-item" style="min-width:120px"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg><span>BFE +2.0m</span></div>
+        <div class="icon-item" style="min-width:120px"><svg viewBox="0 0 24 24"><path d="M12 2v20M2 12h20"/></svg><span>DFE +2.6m</span></div>
+        <div class="icon-item" style="min-width:120px"><svg viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg><span>Freeboard</span></div>
+      </div>
     </div>
   </div>
 
-  <div class="nav-btns" id="nav-container">
-    <button class="btn-slide secondary" id="btn-prev" onclick="changeSlide(-1)" style="display:none;">◀ Sebelumnya</button>
-    <button class="btn-slide" id="btn-next" onclick="changeSlide(1)">Selanjutnya ▶</button>
+  <!-- Slide 2: Issue -->
+  <div class="slide" data-slide="1">
+    <div class="label">The Issue</div>
+    <h1 class="title">Banjir yang <span class="accent">Tak Terbendung</span></h1>
+    <p class="subtitle">Perubahan iklim dan urbanisasi memicu banjir yang semakin sering. Pendekatan lama—membangun tembok tinggi dan memindahkan air ke tetangga—tidak lagi relevan.</p>
+    <div class="visual">
+      <div class="icon-group">
+        <div class="icon-item"><svg viewBox="0 0 24 24"><path d="M4 18h16M4 6h16M8 10h8M8 14h8"/></svg><span>Drainase Konvensional</span></div>
+        <div class="icon-item" style="border-color:rgba(239,68,68,0.4)"><svg viewBox="0 0 24 24" style="stroke:#ef4444"><path d="M12 9v4M12 17h.01"/><circle cx="12" cy="12" r="10"/></svg><span style="color:#ef4444">Overflow</span></div>
+        <div class="icon-item"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M9 22V12h6v10"/></svg><span>Permukiman Terdampak</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 3: Problem -->
+  <div class="slide" data-slide="2">
+    <div class="label">The Problem</div>
+    <h1 class="title">Ketika Air <span class="accent">Diusir</span></h1>
+    <p class="subtitle">Banjir tidak hilang, hanya berpindah. Setiap liter air yang dipindahkan ke saluran kota akan kembali sebagai masalah di tempat lain.</p>
+    <div class="visual">
+      <div style="max-width:600px;margin:0 auto;display:flex;flex-direction:column;gap:16px">
+        <div style="display:flex;align-items:center;gap:16px;padding:16px 24px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:12px"><span style="font-size:24px;font-weight:800;color:#ef4444">01</span><span style="font-size:15px;color:#cbd5e1;text-align:left">Air hujan tidak bisa meresap karena permukaan tertutup beton</span></div>
+        <div style="display:flex;align-items:center;gap:16px;padding:16px 24px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.2);border-radius:12px"><span style="font-size:24px;font-weight:800;color:#f59e0b">02</span><span style="font-size:15px;color:#cbd5e1;text-align:left">Air dipompa ke saluran kota yang kapasitasnya terbatas</span></div>
+        <div style="display:flex;align-items:center;gap:16px;padding:16px 24px;background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.2);border-radius:12px"><span style="font-size:24px;font-weight:800;color:#8b5cf6">03</span><span style="font-size:15px;color:#cbd5e1;text-align:left">Kota tetap kebanjiran, dan sistem air bersih terbuang sia-sia</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 4: Solution -->
+  <div class="slide" data-slide="3">
+    <div class="label">The Solution</div>
+    <h1 class="title">Regeneratif & <span class="accent">Adaptif</span></h1>
+    <p class="subtitle">Bukan menolak air, tetapi memberi ruang. Bangunan terangkat yang menjadi habitat bagi air, sekaligus pusat aktivitas komunal.</p>
+    <div class="visual">
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;max-width:800px">
+        <div class="icon-item" style="min-width:110px"><svg viewBox="0 0 24 24"><path d="M12 2v20M2 12h20"/></svg><span>Elevasi +2.6m</span></div>
+        <div class="icon-item" style="min-width:110px"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg><span>Food Hall</span></div>
+        <div class="icon-item" style="min-width:110px"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg><span>Perpustakaan</span></div>
+        <div class="icon-item" style="min-width:110px;border-color:rgba(34,197,94,0.4)"><svg viewBox="0 0 24 24" style="stroke:#22c55e"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span style="color:#22c55e">Atap Hijau</span></div>
+        <div class="icon-item" style="min-width:110px"><svg viewBox="0 0 24 24"><path d="M4 18h16M4 6h16"/></svg><span>Rockflow</span></div>
+        <div class="icon-item" style="min-width:110px"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg><span>Tangki</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-dots" id="navDots">
+    <div class="dot active" data-dot="0"></div><div class="dot" data-dot="1"></div><div class="dot" data-dot="2"></div><div class="dot" data-dot="3"></div>
+  </div>
+  <div class="nav-buttons">
+    <button id="btnPrev" disabled>← Sebelumnya</button>
+    <button id="btnNext" class="primary">Selanjutnya →</button>
+    <button id="btnStart" class="primary" style="display:none">Mulai Simulasi →</button>
+  </div>
+</div>
+
+<!-- ==================== SIMULATION CONTAINER ==================== -->
+<div id="sim-container">
+  <div id="labels"></div>
+  <div id="balloon"><span class="t" id="bt">Penjelasan Sistem</span><span id="bc"></span></div>
+  
+  <div id="panel" class="sim-card">
+    <div id="ph"><span>ARCHITECTURAL SYSTEM</span><button id="col" style="padding:2px 6px;border:none;background:transparent;cursor:pointer">▾</button></div>
+    <div id="pb">
+      <h1>Ruang Komunal Terangkat</h1>
+      <p class="sub">Community Food Hall + Perpustakaan · Denpasar</p>
+      <div class="std"><span>BFE +2,0 m</span><span>DFE +2,6 m</span><span>Freeboard 0,6 m</span></div>
+      <div id="modes"></div>
+      <button id="reset">↺ Reset Tampilan</button>
+      <div id="step" hidden>
+        <div id="sc"></div><h3 id="st"></h3><p id="sn"></p><div class="bar"><i id="sb"></i></div>
+        <div class="ctl"><button id="bk">◀ Kembali</button><button id="pp">⏸ Jeda</button><button id="nx">Lanjut ▶</button><button id="cl">✕ Tutup</button></div>
+      </div>
+      <div class="tg"><label><input type="checkbox" id="xr"> X-ray tanah</label><label><input type="checkbox" id="lb" checked> Label</label></div>
+      <div id="legend">
+        <span><i style="background:#94a3b8"></i>Beton</span><span><i style="background:#b45309"></i>Kayu</span>
+        <span><i style="background:#22c55e"></i>Atap Hijau</span><span><i style="background:#ef4444"></i>Jogging Track</span>
+        <span><i style="background:#2563eb"></i>Jalur A</span><span><i style="background:#ea580c"></i>Jalur B</span>
+        <span><i style="background:#9333ea"></i>Overflow</span><span><i style="background:#475569"></i>Outlet</span>
+        <span><i style="background:#8b5cf6"></i>Sampah</span><span><i style="background:#334155"></i>Rockflow</span>
+      </div>
+    </div>
   </div>
   
-  <div class="dots">
-    <div class="dot active"></div>
-    <div class="dot"></div>
-    <div class="dot"></div>
-    <div class="dot"></div>
+  <div id="hud" class="sim-card">
+    <div><span>Muka air</span><b id="hw">-3,20 m</b></div><div><span>BFE / DFE</span><b>+2,0 / +2,6 m</b></div>
+    <div><span>Kapasitas</span><b id="ht">0%</b></div><div><span>Status</span><b id="hs">Standby</b></div>
   </div>
+  
+  <div id="info" class="sim-card" hidden><button id="ic">✕</button><h4 id="it"></h4><h5>Bentuk</h5><p id="ib"></p><h5>Fungsi & Teori</h5><p id="if"></p></div>
 </div>
 
-<div id="labels"></div>
-<div id="balloon"><span class="t" id="bt">Penjelasan Sistem</span><span id="bc"></span></div>
+<script>
+// ==================== INTRO SLIDER LOGIC ====================
+document.addEventListener('DOMContentLoaded', () => {
+  const slides = document.querySelectorAll('.slide');
+  const dots = document.querySelectorAll('.dot');
+  const btnPrev = document.getElementById('btnPrev');
+  const btnNext = document.getElementById('btnNext');
+  const btnStart = document.getElementById('btnStart');
+  const introContainer = document.getElementById('intro-container');
+  const simContainer = document.getElementById('sim-container');
+  let currentSlide = 0;
+  const totalSlides = slides.length;
 
-<!-- HIDE UI INITIALLY -->
-<div id="panel" class="card" style="opacity:0; pointer-events:none;"><div id="ph"><span>ARCHITECTURAL SYSTEM</span><button id="col" style="padding:2px 6px;border:none;background:transparent;color:#fff;">▾</button></div>
-<div id="pb">
- <h1>Ruang Komunal Terangkat</h1>
- <p class="sub">Community Food Hall + Perpustakaan · Denpasar</p>
- <div class="std"><span>BFE +2,0 m</span><span>DFE +2,6 m</span><span>Freeboard 0,6 m</span></div>
- <div id="modes"></div>
- <button id="reset">↺ Reset Tampilan</button>
- <div id="step" hidden>
-  <div id="sc"></div><h3 id="st"></h3><p id="sn"></p><div class="bar"><i id="sb"></i></div>
-  <div class="ctl"><button id="bk">◀ Kembali</button><button id="pp">⏸ Jeda</button><button id="nx">Lanjut ▶</button><button id="cl">✕ Tutup</button></div>
- </div>
- <div class="tg"><label><input type="checkbox" id="xr"> X-ray tanah</label><label><input type="checkbox" id="lb" checked> Label</label></div>
- <div id="legend">
-  <span><i style="background:#94a3b8"></i>Beton</span><span><i style="background:#b45309"></i>Kayu</span>
-  <span><i style="background:#22c55e"></i>Atap Hijau</span><span><i style="background:#ef4444"></i>Jogging Track</span>
-  <span><i style="background:#3b82f6"></i>Jalur A</span><span><i style="background:#f97316"></i>Jalur B</span>
-  <span><i style="background:#a855f7"></i>Overflow</span><span><i style="background:#64748b"></i>Outlet</span>
-  <span><i style="background:#8b5cf6"></i>Sampah</span><span><i style="background:#334155"></i>Rockflow</span>
- </div>
-</div></div>
+  function goToSlide(index) {
+    if (index < 0 || index >= totalSlides) return;
+    slides.forEach((s, i) => {
+      s.classList.toggle('active', i === index);
+      if (i === index) {
+        const children = s.querySelectorAll('.label, .title, .subtitle, .visual');
+        children.forEach(child => {
+          child.style.animation = 'none';
+          child.offsetHeight; 
+          child.style.animation = '';
+        });
+      }
+    });
+    dots.forEach((d, i) => d.classList.toggle('active', i === index));
+    btnPrev.disabled = index === 0;
+    if (index === totalSlides - 1) {
+      btnNext.style.display = 'none';
+      btnStart.style.display = 'block';
+    } else {
+      btnNext.style.display = 'block';
+      btnStart.style.display = 'none';
+    }
+    currentSlide = index;
+  }
 
-<div id="hud" class="card" style="opacity:0; pointer-events:none;">
- <div><span>Muka air</span><b id="hw">-3,20 m</b></div><div><span>BFE / DFE</span><b>+2,0 / +2,6 m</b></div>
- <div><span>Kapasitas</span><b id="ht">0%</b></div><div><span>Status</span><b id="hs">Standby</b></div>
-</div>
-<div id="info" class="card" hidden><button id="ic">✕</button><h4 id="it"></h4><h5>Bentuk</h5><p id="ib"></p><h5>Fungsi & Teori</h5><p id="if"></p></div>
+  btnNext.addEventListener('click', () => goToSlide(currentSlide + 1));
+  btnPrev.addEventListener('click', () => goToSlide(currentSlide - 1));
+  dots.forEach((dot, i) => dot.addEventListener('click', () => goToSlide(i)));
 
+  btnStart.addEventListener('click', () => {
+    introContainer.classList.add('hidden');
+    setTimeout(() => {
+      simContainer.classList.add('active');
+      window.dispatchEvent(new Event('resize')); // Trigger 3D canvas resize
+    }, 800);
+  });
+
+  goToSlide(0);
+});
+</script>
+
+<!-- ==================== 3D SIMULATION LOGIC ==================== -->
 <script type="module">
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
@@ -167,59 +294,27 @@ import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 
 const $=s=>document.querySelector(s),rnd=(a,b)=>a+Math.random()*(b-a),mv=(a,b,d)=>a+Math.max(-d,Math.min(d,b-a));
 const C={cream:0xcbd5e1,terra:0xb45309,moss:0x22c55e,sage:0x4ade80,wood:0xb45309,wood2:0x78350f,soil:0x451a03,brick:0xef4444,
- cPathA:0x3b82f6, cPathB:0xf97316, cBee:0xd97706, cToilet:0x0ea5e9, cGarden:0x22c55e, cOver:0xa855f7, cCity:0x475569};
+ cPathA:0x2563eb, cPathB:0xea580c, cBee:0xd97706, cToilet:0x0ea5e9, cGarden:0x22c55e, cOver:0x9333ea, cCity:0x475569};
 
-/* --- INTRO SLIDE LOGIC --- */
-let currentSlide = 0;
-const slides = document.querySelectorAll('.slide');
-const dots = document.querySelectorAll('.dot');
-const btnPrev = document.getElementById('btn-prev');
-const btnNext = document.getElementById('btn-next');
-
-window.changeSlide = function(dir) {
-    slides[currentSlide].classList.remove('active');
-    dots[currentSlide].classList.remove('active');
-    currentSlide += dir;
-    
-    if (currentSlide >= slides.length - 1) {
-        currentSlide = slides.length - 1;
-        document.getElementById('nav-container').style.display = 'none';
-    } else {
-        document.getElementById('nav-container').style.display = 'flex';
-    }
-    
-    if (currentSlide <= 0) { currentSlide = 0; btnPrev.style.display = 'none'; } 
-    else { btnPrev.style.display = 'block'; }
-    
-    if (currentSlide === slides.length - 1) btnNext.style.display = 'none';
-    else btnNext.style.display = 'block';
-
-    slides[currentSlide].classList.add('active');
-    dots[currentSlide].classList.add('active');
-}
-
-window.startSimulation = function() {
-    document.getElementById('intro-overlay').classList.add('hidden');
-    document.getElementById('panel').style.opacity = '1';
-    document.getElementById('panel').style.pointerEvents = 'auto';
-    document.getElementById('hud').style.opacity = '1';
-    document.getElementById('hud').style.pointerEvents = 'auto';
-}
-
-/* ---------- RENDERER & SCENE ---------- */
 const renderer=new THREE.WebGLRenderer({antialias:true, alpha:false});
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));
 renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;
 document.body.prepend(renderer.domElement);
 
+// Ensure canvas is positioned correctly under the UI
+renderer.domElement.style.position = 'fixed';
+renderer.domElement.style.top = '0';
+renderer.domElement.style.left = '0';
+renderer.domElement.style.zIndex = '0';
+
 const scene=new THREE.Scene();
-scene.background = new THREE.Color(0x0f172a); // Dark mode background
-scene.fog=new THREE.Fog(0x0f172a,100,350);
+scene.background = new THREE.Color(0xcbd5e1); 
+scene.fog=new THREE.Fog(0xcbd5e1,100,350);
 
 const pm=new THREE.PMREMGenerator(renderer);
 scene.environment=pm.fromScene(new RoomEnvironment(),0.04).texture;
-scene.environmentIntensity=0.4;
+scene.environmentIntensity=0.5;
 
 const camera=new THREE.PerspectiveCamera(35,1,.1,900);
 camera.position.set(50,40,60);
@@ -230,19 +325,17 @@ controls.minDistance=20; controls.maxDistance=150;
 controls.minPolarAngle = 0.1;
 controls.maxPolarAngle = Math.PI/2 - 0.05;
 
-/* ---------- LIGHTING ---------- */
-scene.add(new THREE.AmbientLight(0xffffff, 0.2));
-const hemiLight = new THREE.HemisphereLight(0x94a3b8, 0x1e293b, 0.6);
+scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+const hemiLight = new THREE.HemisphereLight(0x94a3b8, 0x1e293b, 0.8);
 scene.add(hemiLight);
 
-const sun=new THREE.DirectionalLight(0xfff0dd, 2.5);
+const sun=new THREE.DirectionalLight(0xfff0dd, 2.0);
 sun.position.set(-40,80,50);sun.castShadow=true;
 sun.shadow.mapSize.set(2048,2048);
 Object.assign(sun.shadow.camera,{left:-60,right:60,top:60,bottom:-60,near:10,far:250});
 sun.shadow.bias=-0.0005;sun.shadow.normalBias=0.05;
 scene.add(sun);
 
-/* ---------- MATERIALS ---------- */
 const G={},grp=n=>G[n]||(G[n]={m:[],dim:1}),KEEP=new Set(['ground','bfe']);
 function mat(g,color,op=1,o={}){
     const m=new THREE.MeshStandardMaterial({color,roughness:0.8,metalness:0,transparent:op<1,opacity:op,emissive:0x000000,emissiveIntensity:0,...o});
@@ -258,7 +351,6 @@ const put=(m,i,x,y,z,s=1,sy=s)=>{dm.position.set(x,y,z);dm.rotation.set(0,0,0);d
 function rr(w,h,r){const s=new THREE.Shape();s.moveTo(-w+r,-h);s.lineTo(w-r,-h);s.quadraticCurveTo(w,-h,w,-h+r);s.lineTo(w,h-r);s.quadraticCurveTo(w,h,w-r,h);s.lineTo(-w+r,h);s.quadraticCurveTo(-w,h,-w,h-r);s.lineTo(-w,-h+r);s.quadraticCurveTo(-w,-h,-w+r,-h);return s}
 const hole=(s,r)=>{const h=new THREE.Path();h.absarc(0,0,r,0,Math.PI*2,true);s.holes.push(h);return s};
 
-/* ---------- GROUND & SWALE ---------- */
 const mGrass=mat('ground',C.moss,1,{roughness:1,metalness:0}),mSoil=mat('ground',C.soil,1,{roughness:1});
 {const ground=new THREE.Mesh(new THREE.ExtrudeGeometry(hole(rr(60,60,.01),10),{depth:8,bevelEnabled:false,curveSegments:64}),[mGrass,mSoil]);
  ground.rotation.x=Math.PI/2;ground.receiveShadow=true;scene.add(ground)}
@@ -278,7 +370,6 @@ M(new THREE.BoxGeometry(0.2, 1.5, 6), dryingBedMat, -28, 0.85, -20, 'dryingBed')
 M(new THREE.BoxGeometry(0.2, 1.5, 6), dryingBedMat, -22, 0.85, -20, 'dryingBed');
 M(new THREE.BoxGeometry(6, 1.5, 0.2), dryingBedMat, -25, 0.85, -23, 'dryingBed');
 
-/* ---------- AMFITEATER ---------- */
 const R=i=>10-i*1.1,Y=i=>-3.2*i/6;
 const prof=[new THREE.Vector2(10,0)];for(let i=0;i<6;i++)prof.push(new THREE.Vector2(R(i),Y(i+1)),new THREE.Vector2(R(i+1),Y(i+1)));prof.push(new THREE.Vector2(0,-3.2));
 const mBowl=mat('bowl',C.cream,1,{side:THREE.DoubleSide,flatShading:false,roughness:0.9});
@@ -288,11 +379,9 @@ const mDr=mat('drain',0x1e293b);
 [[0,0,.45],...[0,1,2,3,4].map(i=>[Math.cos(i*1.2566)*1.5,Math.sin(i*1.2566)*1.5,.2])].forEach(([x,z,r])=>M(new THREE.CylinderGeometry(r,r,.06,16),mDr,x,-3.17,z,'drain'));
 M(new THREE.TorusGeometry(.6,.1,8,32),mat('drain',0xfbbf24),0,-3.14,0,'drain').rotation.x=Math.PI/2;
 
-/* ---------- JOGGING TRACK ---------- */
 {const tr=(a,b,c,col,y,k)=>{const o=M(new THREE.RingGeometry(a,b,c),mat('track',col,1,{side:THREE.DoubleSide,roughness:0.9}),0,y,0,k);o.rotation.x=-Math.PI/2;o.castShadow=false;return o};
  tr(10,11.8,96,C.brick,.04,'track');tr(10.55,10.62,96,0xf8fafc,.055,'track');tr(11.2,11.27,96,0xf8fafc,.055,'track')}
 
-/* ---------- DEK + UNDERCROFT ---------- */
 const OC=12.6;
 {const d=M(new THREE.ExtrudeGeometry(hole(rr(27,16,4),OC),{depth:.3,bevelEnabled:true,bevelThickness:.15,bevelSize:.15,bevelSegments:3,curveSegments:64}),mat('deck',C.cream,1,{roughness:0.8}),0,2.15,0,'deck');
  d.rotation.x=-Math.PI/2;
@@ -303,7 +392,6 @@ const OC=12.6;
  const cl=new THREE.InstancedMesh(new THREE.CylinderGeometry(.22,.26,2,16),mat('under',0x94a3b8),cp.length);cp.forEach(([x,z],i)=>put(cl,i,x,1,z));
  cl.castShadow=cl.receiveShadow=true;cl.userData.key='under';pick.push(cl);scene.add(cl)}
 
-/* ---------- PAVILIUN ---------- */
 const chairs={hall:[],lib:[]},shelves=[];
 function pav(cx,w,d,h,rise,type){
  const y0=2.6,ft=y0+.2,wood=mat(type,C.wood,1,{roughness:0.6}),wood2=mat(type,C.wood2),
@@ -352,7 +440,6 @@ pav(-20,10,16,3.8,1.0,'hall');pav(20,10,16,4.6,1.2,'lib');
  shelves.forEach(([x,z,hh])=>{for(let r=0;r<4;r++)for(let c=0;c<12;c++){put(bk,n,x-1.3+c*.236,2.8+.4+r*.55,z,1,rnd(.8,1.1));bk.setColorAt(n++,new THREE.Color(pal[(r*3+c)%6]))}});
  bk.userData.key='lib';pick.push(bk);scene.add(bk)}
 
-/* ---------- FASAD BEEHIVE ---------- */
 const hg=new THREE.CylinderGeometry(.29,.29,.12,6);hg.rotateZ(Math.PI/2);
 const hex=new THREE.InstancedMesh(hg,mat('facade',0xffffff,1,{roughness:0.9}),72),hv=[];let hn=0;
 for(let c=0;c<12;c++)for(let r=0;r<6;r++){put(hex,hn++,25.45,3.5+r*.52+(c%2?.26:0),-2.85+c*.52);hv.push(rnd(.92,1.06))}
@@ -361,12 +448,9 @@ hex.castShadow=true;hex.userData.key='facade';pick.push(hex);scene.add(hex);
 const hDry=new THREE.Color(C.terra),hWet=new THREE.Color(0x451a03),hc=new THREE.Color();let lastWet=-1;
 const setHex=w=>{for(let i=0;i<72;i++)hex.setColorAt(i,hc.copy(hDry).lerp(hWet,w).multiplyScalar(hv[i]));hex.instanceColor.needsUpdate=true};
 
-/* ---------- MULTIPLE TANKS, FILTER, RETENTION POND (SOLID) ---------- */
-// Filter
 const filterUnit = M(new THREE.BoxGeometry(4, 2, 3), mat('filter', 0x1e293b, 1, {metalness:0.6, roughness:0.3}), 38, -4, -2, 'filter');
 M(new THREE.BoxGeometry(3.8, 1.8, 2.8), mat('filter', 0x3b82f6, 1, {roughness:0.1, metalness:0.5}), 38, -4, -2, 'filter');
 
-// Tanks (Solid Steel)
 const tk=new THREE.Group();tk.position.set(38,-4.7,-7);scene.add(tk);
 const tankMetal = mat('tank',0x64748b,1,{metalness:0.8, roughness:0.2});
 const tankWater = [];
@@ -379,7 +463,6 @@ M(new THREE.CylinderGeometry(1.6,1.6,3,32),tankMetal,0,0,0,'tankB',tk);
 const twB = new THREE.Mesh(new THREE.CylinderGeometry(1.5,1.5,1,32).translate(0,.5,0), mat('tankB',C.cPathB,0.9,{roughness:0.1,metalness:0.2,emissive:C.cPathB,emissiveIntensity:.2}));
 twB.position.set(0, -1.4, 0); tk.add(twB); tankWater.push({mesh:twB, val:0});
 
-// Pond
 const pondMat = mat('pond', 0x3b82f6, 0.9, {transparent:true, roughness:0.1});
 const pondBase = M(new THREE.CylinderGeometry(5, 5, 0.5, 32), mat('pondBase', 0x1e293b, 1, {roughness:0.9}), 38, -4.5, 15, 'pond');
 const pondWater = M(new THREE.CylinderGeometry(4.9, 4.9, 0.4, 32), pondMat, 38, -4.4, 15, 'pond');
@@ -390,7 +473,6 @@ pondWater.scale.y = 0.01;
   dm.position.set(x,rnd(-6.7,-3.8),z);dm.rotation.set(rnd(0,3),rnd(0,3),0);dm.scale.set(s,s*rnd(.7,1),s);dm.updateMatrix();rk.setMatrixAt(i,dm.matrix);rk.setColorAt(i,cl.setHex(pl[i%4]))}
  rk.castShadow=true;rk.userData.key='rock';pick.push(rk);scene.add(rk);}
 
-/* ---------- PIPES ---------- */
 const pipeGroups = {}, pipeMaterials = []; 
 function createPipe(waypoints, color, key) {
   const group = new THREE.Group(); group.userData.key = key; group.visible = false; 
@@ -413,7 +495,6 @@ createPipe([[38, -4.7, -4], [38, -4.7, 8], [18, -4.7, 8], [18, -4.7, 12], [18, 2
 const cvOver = createPipe([[38, -4.7, 0], [38, -4.7, 11], [38, -4.7, 15]], C.cOver, 'pipe_overflow');
 createPipe([[38, -4.7, 15], [45, -4.7, 15], [45, -4.7, 30], [55, -4.7, 30]], C.cCity, 'pipe_city');
 
-/* ---------- RAMP, VEGETASI, ORANG ---------- */
 {const rc=new THREE.CatmullRomCurve3([[-26,0,40],[-10,0,41],[4,0,34],[9,0,22],[10,0,16]].map(p=>new THREE.Vector3(...p)));
  const N=60,P=[];for(let k=0;k<N;k++)P.push(rc.getPointAt(k/(N-1)).setY(2.6*k/(N-1)));
  const mw=mat('ramp',C.wood),rg=new THREE.InstancedMesh(new THREE.BoxGeometry(3,1,1),mat('ramp',C.cream),N),rl=new THREE.InstancedMesh(new THREE.BoxGeometry(.08,.08,1),mw,N*2);
@@ -437,7 +518,6 @@ const bodies=new THREE.InstancedMesh(new THREE.CapsuleGeometry(.15,.5,4,12),mat(
 P.forEach((p,i)=>{bodies.setColorAt(i,new THREE.Color(pal[i%3]));heads.setColorAt(i,new THREE.Color(skin[i%3]))});
 [bodies,heads].forEach(m=>{m.castShadow=true;m.frustumCulled=false;m.userData.key='people';pick.push(m);scene.add(m)});
 
-/* ---------- AIR, SAMPAH, PARTIKEL ---------- */
 const mCrack=new THREE.MeshStandardMaterial({color:0x0f172a,transparent:true,opacity:0,roughness:1,emissive:0x22c55e,emissiveIntensity:0});
 [[-8,12.2,.2,2.5],[9,12.4,3,3.2],[13.5,4,1.4,2.8]].forEach(([x,z,a,len])=>{
   const pts=[];let px=x,pz=z;for(let i=0;i<10;i++){pts.push(new THREE.Vector3(px,2.64,pz));px+=Math.cos(a)*.3+rnd(-.15,.15);pz+=Math.sin(a)*.3+rnd(-.15,.15);a+=rnd(-.8,.8)}
@@ -493,7 +573,6 @@ const r_vel = [], r_x = [], r_y = [], r_z = [];
 for(let i=0;i<rainCount;i++){r_x.push(rnd(-40,40));r_y.push(rnd(-3,20));r_z.push(rnd(-30,30));r_vel.push(rnd(15,25))}
 const fl=(x,z)=>x>14.4&&x<25.6&&z>-8.6&&z<2.2?8.6:x>-25.6&&x<-14.4&&z>-8.6&&z<2.2?7.6:(Math.abs(x)<27&&Math.abs(z)<16&&x*x+z*z>158?2.6:(x*x+z*z<110?-3.2:0));
 
-/* ---------- UI & LOGIC ---------- */
 const LB=[['Blue-green roof',[20,9.4,-3]],['Food Hall',[-20,6,3]],['Perpustakaan',[20,6.2,3]],['Lantai DFE +2,6 m',[-6,2.8,15.5]],['Fasad keramik',[25.6,6.9,0]],['Undercroft',[-6,1,-14],0],
  ['Amfiteater',[-3,-1.5,4]],['Jogging track',[11,.4,-5]],['Lubang drainase',[0,-3,0]],['Alur Runoff',[16,0.5,0]],['Jalur A',[28,9,-5]],['Jalur B',[20,-6,0]],
  ['Filtrasi',[38,-4,-2]],['Tangki A',[38,-2.8,-4],1],['Tangki B',[38,-2.8,0],1],['Rockflow',[-4,-4.8,3],1],['Kolam Retensi',[38,-3,15]],['Drainase Kota',[50,-4,30]],['Pengeringan',[-25,1,-20]]]
@@ -609,7 +688,6 @@ cv.addEventListener('pointerup',e=>{if(Math.hypot(e.clientX-dx0,e.clientY-dy0)>5
 function resize(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();}
 addEventListener('resize',resize);resize();
 
-/* ---------- LOOP ---------- */
 const clock=new THREE.Clock(),tv=new THREE.Vector3(),grassB=new THREE.Color(C.moss),mudC=new THREE.Color(0x451a03),bowlB=new THREE.Color(C.cream),bowlM=new THREE.Color(0x64748b);
 setHex(0);
 renderer.setAnimationLoop(()=>{
@@ -625,13 +703,10 @@ renderer.setAnimationLoop(()=>{
  const isXray = xr.checked || T.pMode !== '';
  V.xray = mv(V.xray, isXray ? 1 : 0, 3*dt);
 
- // FIX BUG TANAH MENUTUPI TANGKI
  if(V.xray > 0.5){
-    mGrass.depthWrite = false;
-    mSoil.depthWrite = false;
+    mGrass.depthWrite = false; mSoil.depthWrite = false;
  } else {
-    mGrass.depthWrite = true;
-    mSoil.depthWrite = true;
+    mGrass.depthWrite = true; mSoil.depthWrite = true;
  }
 
  mGrass.userData.b=mSoil.userData.b=1-.88*V.xray;mBowl.userData.b=1-.55*V.xray;
@@ -664,7 +739,6 @@ renderer.setAnimationLoop(()=>{
     else { m.emissiveIntensity = 0.2; m.depthTest = true; }
  });
 
- // LOGIKA PENDIMMINGAN (ANTI HILANG)
  for(const k in G){
    const g=G[k];
    let targetOpacity = (!focus.size||focus.has(k)||KEEP.has(k)) ? 1 : 0.3; 
@@ -672,16 +746,11 @@ renderer.setAnimationLoop(()=>{
      if (k.includes('pipe_') || k === 'tank' || k === 'rock' || k === 'filter' || k === 'pond' || k === 'tankA' || k === 'tankB') targetOpacity = 1;
      else targetOpacity = 0.15; 
    }
-   
-   if (['drain','rain','cool'].includes(mode) && ['filter','tankA','tankB','pond'].includes(k)) {
-       targetOpacity = 1;
-   }
-
+   if (['drain','rain','cool'].includes(mode) && ['filter','tankA','tankB','pond'].includes(k)) targetOpacity = 1;
    g.dim += (targetOpacity-g.dim)*Math.min(1,dt*6);
    let pe = 0;
    if(focus.has(k) && !KEEP.has(k) && !T.pMode) pe = 0.1 + 0.08*Math.sin(time*4);
    if(hoverKey===k && !KEEP.has(k)) pe = 0.3;
-   
    for(const m of g.m){
      const o=m.userData.b*g.dim;
      m.opacity=o;
@@ -693,7 +762,6 @@ renderer.setAnimationLoop(()=>{
 
  mCrack.opacity = V.crack;
  mCrack.emissiveIntensity = V.heal * (0.5 + 0.5*Math.sin(time*4));
- 
  const w=V.w;
  tankWater[0].mesh.scale.y = Math.max(.01, 2.8*V.tankA/100);
  tankWater[1].mesh.scale.y = Math.max(.01, 2.8*V.tankB/100);
