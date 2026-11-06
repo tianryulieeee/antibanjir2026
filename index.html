@@ -67,7 +67,7 @@ h1{font-size:17px;line-height:1.2;margin:0 0 2px}.sub{margin:0 0 8px;font-size:1
  <div id="legend">
   <span><i style="background:#e3d8c6"></i>Beton / dek</span><span><i style="background:#b48a5e"></i>Kayu / interior</span>
   <span><i style="background:#8fae72"></i>Atap biru-hijau</span><span><i style="background:#b5523b"></i>Jogging track</span>
-  <span><i style="background:#00aaff"></i>Jalur A (Atap)</span><span><i style="background:#2e8b57"></i>Jalur B (Hujan)</span>
+  <span><i style="background:#00aaff"></i>Jalur A (Atap)</span><span><i style="background:#2e8b57"></i>Jalur B (Limpasan)</span>
   <span><i style="background:#ff6600"></i>Distribusi Beehive</span><span><i style="background:#17becf"></i>Distribusi Toilet</span>
   <span><i style="background:#8bc34a"></i>Distribusi Taman</span><span><i style="background:#7f8c9a"></i>Rockflow</span>
  </div>
@@ -86,7 +86,7 @@ import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 const $=s=>document.querySelector(s),rnd=(a,b)=>a+Math.random()*(b-a),mv=(a,b,d)=>a+Math.max(-d,Math.min(d,b-a));
 const C={cream:0xe3d8c6,terra:0xc47a5a,moss:0x8fae72,sage:0x9fb88a,wood:0xb48a5e,wood2:0x8d6a44,soil:0xa78360,brick:0xb5523b,
- cPathA:0x00aaff, cPathB:0x2e8b57, cBee:0xff6600, cToilet:0x17becf, cGarden:0x8bc34a};
+ cPathA:0x00aaff, cPathB:0xffaa00, cBee:0xff6600, cToilet:0x17becf, cGarden:0x8bc34a}; // PathB diubah jadi Oranye terang
 
 /* ---------- renderer / scene / light ---------- */
 const renderer=new THREE.WebGLRenderer({antialias:true});
@@ -103,12 +103,12 @@ const sun=new THREE.DirectionalLight(0xffe6c0,2.1);sun.position.set(-40,75,50);s
 Object.assign(sun.shadow.camera,{left:-75,right:75,top:75,bottom:-75,near:10,far:260});sun.shadow.bias=-.0004;sun.shadow.normalBias=.06;scene.add(sun);
 const fill=new THREE.DirectionalLight(0xdfeaff,.7);fill.position.set(50,30,40);scene.add(fill);
 
-// NAVIGASI KAMERA TERKUNCI (Tidak bisa tembus tanah)
+// PERBAIKAN NAVIGASI: Kamera selalu di atas tanah, tidak menembus bangunan
 const controls=new OrbitControls(camera,renderer.domElement);
 controls.enableDamping=true; controls.dampingFactor=0.08;
-controls.minDistance=15; controls.maxDistance=200;
+controls.minDistance=20; controls.maxDistance=180;
 controls.minPolarAngle = 0.1;
-controls.maxPolarAngle = Math.PI/2 - 0.05;
+controls.maxPolarAngle = Math.PI/2 - 0.1;
 
 /* ---------- materials & grouping ---------- */
 const G={},grp=n=>G[n]||(G[n]={m:[],dim:1}),KEEP=new Set(['ground','bfe']);
@@ -129,6 +129,14 @@ const hole=(s,r)=>{const h=new THREE.Path();h.absarc(0,0,r,0,Math.PI*2,true);s.h
 const mGrass=mat('ground',C.moss),mSoil=mat('ground',C.soil);
 {const ground=new THREE.Mesh(new THREE.ExtrudeGeometry(hole(rr(50,50,.01),10),{depth:8,bevelEnabled:false,curveSegments:48}),[mGrass,mSoil]);
  ground.rotation.x=Math.PI/2;ground.receiveShadow=true;scene.add(ground)}
+
+// Visualisasi Jalur Air Permukaan (Runoff Swale)
+const swaleMat = mat('track', 0x88ccff, 0.8, {transparent: true, roughness: 0.1});
+// Parit melingkar masuk ke amfiteater
+const swale1 = M(new THREE.RingGeometry(12, 16, 64, 1, 0, Math.PI), swaleMat, 0, 0.05, 0, 'swale');
+swale1.rotation.x = -Math.PI/2;
+const swale2 = M(new THREE.RingGeometry(16, 22, 64, 1, 0.5, 1.5), swaleMat, 0, 0.05, 0, 'swale');
+swale2.rotation.x = -Math.PI/2;
 
 const R=i=>10-i*1.1,Y=i=>-3.2*i/6;
 const prof=[new THREE.Vector2(10,0)];for(let i=0;i<6;i++)prof.push(new THREE.Vector2(R(i),Y(i+1)),new THREE.Vector2(R(i+1),Y(i+1)));prof.push(new THREE.Vector2(0,-3.2));
@@ -214,13 +222,27 @@ M(new THREE.BoxGeometry(2.8, 1.8, 2.8), mat('filter', 0x00e5ff, 0.6), 35, -4, -2
  rk.castShadow=true;rk.userData.key='rock';pick.push(rk);scene.add(rk);
  const zone=M(new THREE.CylinderGeometry(9.7,9.7,3.8,40,1,true),mat('rock',C.amber,.1,{side:THREE.DoubleSide}),0,-5.3,0,'rock');zone.castShadow=false;ol(zone,'rock',.5)}
 
-// FUNGSI PEMBUAT PIPA (Murni Siku-Siku 90 Derajat)
+// FUNGSI PEMBUAT PIPA (Anti Tertutup: depthTest dimatikan saat mode aktif)
 const pipeGroups = {};
+const pipeMaterials = []; // Kumpulan material pipa
+
 function createPipe(waypoints, color, key) {
   const group = new THREE.Group();
   group.userData.key = key;
   group.visible = false; // Default Sembunyi
-  const m = mat(key, color, 1, { emissive: color, emissiveIntensity: 0.5, metalness: 0.6, roughness: 0.3 });
+  
+  // Material Khusus Pipa (Menyala, tanpa depth test agar menembus objek)
+  const m = new THREE.MeshStandardMaterial({ 
+    color: color, 
+    emissive: color, 
+    emissiveIntensity: 0.8, 
+    transparent: true, 
+    opacity: 1,
+    depthTest: false, 
+    depthWrite: false,
+    linewidth: 2
+  });
+  pipeMaterials.push(m);
   
   const points = waypoints.map(p => new THREE.Vector3(...p));
   
@@ -229,20 +251,21 @@ function createPipe(waypoints, color, key) {
     const dist = p1.distanceTo(p2);
     if (dist < 0.1) continue;
     
-    const cyl = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, dist, 12), m);
+    // Pipa Tebal
+    const cyl = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, dist, 12), m);
     cyl.position.copy(p1).add(p2).multiplyScalar(0.5);
     cyl.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), p2.clone().sub(p1).normalize());
-    cyl.castShadow = true; cyl.receiveShadow = true;
     cyl.userData.key = key;
+    cyl.renderOrder = 999; // Paksa render paling depan
     group.add(cyl);
     pick.push(cyl);
   }
   
   for (let i = 1; i < points.length - 1; i++) {
-    const sph = new THREE.Mesh(new THREE.SphereGeometry(0.15, 12, 12), m);
+    const sph = new THREE.Mesh(new THREE.SphereGeometry(0.2, 12, 12), m);
     sph.position.copy(points[i]);
-    sph.castShadow = true; sph.receiveShadow = true;
     sph.userData.key = key;
+    sph.renderOrder = 999;
     group.add(sph);
     pick.push(sph);
   }
@@ -275,6 +298,7 @@ createPipe([
 createPipe([
   [35, -4.7, -7], [35, -4.7, 8], [18, -4.7, 8], [18, -4.7, 12], [18, 2.6, 12]
 ], C.cGarden, 'pipe_garden');
+
 
 /* ---------- ramp ---------- */
 {const rc=new THREE.CatmullRomCurve3([[-26,0,40],[-10,0,41],[4,0,34],[9,0,22],[10,0,16]].map(p=>new THREE.Vector3(...p)));
@@ -326,19 +350,22 @@ const bw=[];for(let i=0;i<6;i++){const m=new THREE.Mesh(new THREE.CylinderGeomet
 /* ---------- partikel ---------- */
 const inst=(n,geo,c)=>{const m=new THREE.InstancedMesh(geo,new THREE.MeshBasicMaterial({color:c}),n);m.count=0;m.frustumCulled=false;scene.add(m);return m};
 const rain=inst(1200,new THREE.SphereGeometry(.08,6,4),0x8fd0ee),whirl=inst(100,new THREE.SphereGeometry(.09,6,4),0xdffbfa),air=inst(140,new THREE.IcosahedronGeometry(.12,0),0xffffff),healP=inst(100,new THREE.SphereGeometry(.1,6,4),0x44ff88);
-const inflow=inst(200,new THREE.SphereGeometry(.12,6,4),C.cPathA);
+
+// Partikel Surface Runoff (Air masuk amfiteater)
+const runoff = inst(300, new THREE.SphereGeometry(0.15, 6, 4), C.cPathA);
+const rnx=[], rnz=[], rna=[], rnr=[]; for(let i=0;i<300;i++){ rnx.push(0); rnz.push(0); rna.push(rnd(0,6.28)); rnr.push(rnd(20, 26)); }
+
 const rx=[],ry=[],rz=[],rs=[];for(let i=0;i<1200;i++){rx.push(rnd(-34,34));ry.push(rnd(-3,16));rz.push(rnd(-24,24));rs.push(rnd(9,13))}
 const wa=[],wr=[];for(let i=0;i<100;i++){wa.push(rnd(0,6.28));wr.push(rnd(0,1.6))}
 const ax=[],ay=[],az=[],as=[];for(let i=0;i<140;i++){ax.push(rnd(26,36));ay.push(rnd(3.4,6.3));az.push(rnd(-2.8,2.8));as.push(rnd(1.6,2.4))}
 const hx=[],hy=[],hz=[];for(let i=0;i<100;i++){hx.push(rnd(-15,15));hy.push(rnd(2.6,3.5));hz.push(rnd(-15,15))}
-const inx=[],iny=[],inz=[],inr=[],ina=[];for(let i=0;i<200;i++){inx.push(0);iny.push(0);inz.push(0);inr.push(rnd(10,14));ina.push(rnd(0,6.28))}
 
 const fl=(x,z)=>x>14.4&&x<25.6&&z>-8.6&&z<2.2?8.6:x>-25.6&&x<-14.4&&z>-8.6&&z<2.2?7.6:(Math.abs(x)<27&&Math.abs(z)<16&&x*x+z*z>158?2.6:(x*x+z*z<110?-3.2:0));
 const cRed=new THREE.Color(0xd9534a),cBlue=new THREE.Color(0x5aa7d8),ct=new THREE.Color();
 
 /* ---------- label 3D ---------- */
 const LB=[['Blue-green roof',[20,9.4,-3]],['Food Hall',[-20,6,3]],['Perpustakaan',[20,6.2,3]],['Lantai DFE +2,6 m',[-6,2.8,15.5]],['Fasad keramik',[25.6,6.9,0]],['Undercroft',[-6,1,-14],0],
- ['Amfiteater',[-3,-1.5,4]],['Jogging track',[11,.4,-5]],['Lubang drainase',[0,-3,0]],['Jalur A',[28,9,-5]],['Jalur B',[20,-6,0]],['Filtrasi',[35,-4,-2]],['Tangki',[35,-2.8,-7],1],['Rockflow',[-4,-4.8,3],1],['BFE +2,0 m',[31.8,2,19]],['DFE +2,6 m',[31.8,2.9,19]]]
+ ['Amfiteater',[-3,-1.5,4]],['Jogging track',[11,.4,-5]],['Lubang drainase',[0,-3,0]],['Alur Runoff',[16,0.5,0]],['Jalur A',[28,9,-5]],['Jalur B',[20,-6,0]],['Filtrasi',[35,-4,-2]],['Tangki',[35,-2.8,-7],1],['Rockflow',[-4,-4.8,3],1],['BFE +2,0 m',[31.8,2,19]],['DFE +2,6 m',[31.8,2.9,19]]]
  .map(([t,p,u])=>{const e=document.createElement('div');e.textContent=t;$('#labels').appendChild(e);return{e,p,u:u===1}});
 
 /* ---------- data langkah (Terintegrasi Sistem Jalur) ---------- */
@@ -347,8 +374,8 @@ const MODES={
 flood:{n:'Banjir',i:'🌊',steps:[
  {t:'Kondisi kering',f:['deck','hall','lib','under','track','people'],c:[40,25,50,0,2,0],s:{w:-3.2,tank:20},
   n:'Ruang komunal berdiri kokoh dengan dek di elevasi +2,6 m. Undercroft dan amfiteater berfungsi penuh untuk aktivitas warga. Saat ini sistem retensi kosong dan siap bekerja.'},
- {t:'Hujan & Luapan',f:['roof','bowl','track','inflow'],c:[25,15,35,0,2,0],s:{w:-1.5,rain:1,inflow:1},
-  n:'Hujan ekstrem atau luapan sungai masuk ke tapak. Amfiteater yang menjorok -3,2 m menjadi ruang pertama yang tergenang. Ini adalah strategi "memberi ruang bagi air" (Barsley, 2020).'},
+ {t:'Hujan & Luapan',f:['roof','bowl','track','swale'],c:[25,15,35,0,2,0],s:{w:-1.5,rain:1,inflow:1},
+  n:'Hujan ekstrem atau luapan sungai masuk ke tapak melalui saluran air permukaan (runoff swale). Amfiteater yang menjorok -3,2 m menjadi ruang pertama yang tergenang, mencegah air membanjiri permukiman warga (Barsley, 2020).'},
  {t:'Air memenuhi Amfiteater',f:['bowl','under'],c:[35,15,35,0,-1,0],s:{w:1.0,rain:1,inflow:1},
   n:'Air naik secara perlahan. Kolom-kolom ramping di undercroft membiarkan air mengalir bebas tanpa menghalangi, sehingga tidak menimbulkan tekanan yang mendorong air ke rumah tetangga.'},
  {t:'Mencapai BFE +2,0 m',f:['bfe','deck'],c:[40,12,30,15,2.2,5],s:{w:2.0,rain:1,inflow:1},
@@ -358,14 +385,14 @@ drain:{n:'Drainase',i:'💧',steps:[
   n:'Limpasan permukaan (plaza/tapak) masuk melewati saringan sampah dan perangkap sedimen, lalu mengalir ke amfiteater. Air berputar menuju lubang drainase di dasar cekungan.'},
  {t:'Resapan Rockflow',f:['rock'],c:[25,15,25,0,-4,0],s:{w:-2.0,whirl:1,x:1},
   n:'Air meresap ke lapisan Rockflow (batu berongga). Ini berfungsi sebagai buffer/infiltrasi sebelum diolah lebih lanjut. (Barsley, 2020).'},
- {t:'Jalur B: Filtrasi & Tangki',f:['pipe_pathB','filter','tank'],c:[30,15,20,15,-4,-2],s:{w:-2.5,pMode:'pathB',tank:55,x:1},
-  n:'Kelebihan air dari Rockflow dialirkan melalui pipa hijau (Jalur B) menuju unit Filtrasi & Disinfeksi. Air diolah agar aman sebelum disimpan di tangki non-potabel untuk keperluan flushing dan pendinginan.'},
+ {t:'Jalur B: Filtrasi & Tangki',f:['pipe_pathB','filter','tank'],c:[30,10,20,15,-2,-2],s:{w:-2.5,pMode:'pathB',tank:55,x:1},
+  n:'Kelebihan air dari Rockflow dialirkan melalui pipa (Jalur B) menuju unit Filtrasi & Disinfeksi. Pipa ditampilkan menembus tanah agar alurnya terlihat jelas. Air diolah agar aman sebelum disimpan di tangki non-potabel.'},
  {t:'Surut ≤ 48 Jam',f:['bowl','track','rock'],c:[35,20,35,0,-2,0],s:{w:-3.2,pMode:'pathB',tank:70},
   n:'Genangan di amfiteater surut. Air telah berpindah ke tangki dan terserap ke tanah. Amfiteater dapat digunakan kembali untuk kegiatan warga.'}]},
 rain:{n:'Panen Air Hujan',i:'🌧️',steps:[
  {t:'Hujan di Blue-Green Roof',f:['roof'],c:[40,25,25,20,5,-3],s:{w:-3,rain:1,tank:15},
   n:'Hujan jatuh ke atap hijau (Blue-Green Roof). Vegetasi menahan air, memperlambat limpasan, dan memberikan pendinginan evaporatif alami pada bangunan (Jensen & Donovan, 2026).'},
- {t:'Jalur A: Diverter & Filtrasi',f:['pipe_pathA','filter','tank'],c:[35,20,20,20,-2,-5],s:{w:-2.8,rain:1,pMode:'pathA',tank:40,x:1},
+ {t:'Jalur A: Diverter & Filtrasi',f:['pipe_pathA','filter','tank'],c:[35,15,20,20,-2,-5],s:{w:-2.8,rain:1,pMode:'pathA',tank:40,x:1},
   n:'Air mengalir melalui talang, melewati First Flush Diverter (membuang air awal yang kotor), lalu menuju unit Filtrasi & Disinfeksi sebelum masuk tangki. Bangunan transparan agar alur terlihat.'},
  {t:'Tangki Terisi',f:['tank','pipe_pathA'],c:[40,15,10,35,-4.5,-7],s:{w:-2.8,rain:1,pMode:'pathA',tank:85,x:1},
   n:'Tangki penampungan terisi hingga 85%. Air hujan disimpan untuk digunakan pada musim kemarau, mengurangi ketergantungan pada air PDAM.'},
@@ -394,6 +421,7 @@ const INFO={
  under:['Undercroft','Ruang terbuka setinggi 2 m di bawah dek beton, ditopang kolom ramping.','Hari biasa dipakai berdagang dan parkir. Saat banjir, air mengalir bebas di sela kolom sehingga tidak mendorong air ke tetangga (Dry Floodproofing). (Barsley, 2020).',[-4,15,40,0,1,8]],
  bowl:['Amfiteater adaptif','Cekungan melingkar r=10 m dengan 6 undakan, lubang drainase, dan oculus.','Panggung saat kering; retensi pertama saat banjir. Air dialirkan ke Rockflow dan tangki, surut ≤ 48 jam.',[20,20,25,0,-2,0]],
  track:['Jogging track','Cincin lintasan lari karet merah bata (lebar 1,8 m) mengelilingi amfiteater.','Sirkulasi olahraga harian sekaligus pagar lunak. Permukaannya mudah dibersihkan pascabanjir.',[20,15,25,0,0,0]],
+ swale:['Alur Runoff','Saluran air permukaan dari luar tapak menuju amfiteater.','Mengarahkan limpasan air hujan agar masuk ke cekungan retensi, mencegah banjir di permukiman sekitar.',[25,10,25,0,0,0]],
  hall:['Food Hall','Paviliun kayu 10 × 16 m dengan atap terekspos, meja panjang, dan stand makanan.','Pasar kuliner; saat banjir menjadi dapur umum dan pos distribusi. (Jensen & Donovan, 2026).',[-30,20,35,-20,4,-2]],
  lib:['Perpustakaan','Paviliun kayu 10 × 16 m, rak buku, meja baca, dan Fasad Beehive di timur.','Ruang belajar dan arsip; saat krisis menjadi ruang tenang. Dingin berkat pendinginan evaporatif pasif.',[30,20,35,20,4,-2]],
  roof:['Blue-green roof','Atap miring berlapis vegetasi sage-moss dengan kolam dangkal.','Menahan limpasan hujan, mendinginkan lewat evapotranspirasi, menyalurkan air ke tangki. (Jensen & Donovan, 2026).',[40,25,20,20,6,-3]],
@@ -474,10 +502,12 @@ renderer.setAnimationLoop(()=>{
  mGrass.userData.b=mSoil.userData.b=1-.88*V.xray;mBowl.userData.b=1-.55*V.xray;
  mGrass.color.copy(grassB).lerp(mudC,V.mud*.8);mBowl.color.copy(bowlB).lerp(bowlM,V.mud*.8);
  
- // VISIBILITAS PIPA: Hanya munculkan pipa yang relevan
+ // VISIBILITAS PIPA & MATERIAL
  for (const [key, group] of Object.entries(pipeGroups)) {
    group.visible = false;
  }
+ 
+ // Tentukan pipa mana yang hidup
  if (T.pMode === 'pathA') pipeGroups['pipe_pathA'].visible = true;
  if (T.pMode === 'pathB') pipeGroups['pipe_pathB'].visible = true;
  if (T.pMode === 'bee') pipeGroups['pipe_bee'].visible = true;
@@ -486,6 +516,17 @@ renderer.setAnimationLoop(()=>{
    pipeGroups['pipe_toilet'].visible = true;
    pipeGroups['pipe_garden'].visible = true;
  }
+ 
+ // Efek Kedip pada Material Pipa saat aktif
+ pipeMaterials.forEach(m => {
+    const isActive = (T.pMode && T.pMode !== 'none');
+    if (isActive) {
+        m.emissiveIntensity = 1.5 + Math.sin(time * 8) * 0.5; 
+        m.depthTest = false; // Paksa tembus pandang jika aktif
+    } else {
+        m.emissiveIntensity = 0.2;
+    }
+ });
 
  for(const k in G){
    const g=G[k];
@@ -493,7 +534,7 @@ renderer.setAnimationLoop(()=>{
    
    if (T.pMode) {
      if (k.includes('pipe_') || k === 'tank' || k === 'rock' || k === 'filter') targetOpacity = 1;
-     else targetOpacity = 0.05; // Sangat transparan
+     else targetOpacity = 0.05; // Bangunan transparan 95% saat mode pipa
    }
 
    g.dim += (targetOpacity-g.dim)*Math.min(1,dt*6);
@@ -508,12 +549,9 @@ renderer.setAnimationLoop(()=>{
      m.transparent=m.userData.b<1||o<.995;
      m.depthWrite=!m.transparent;
      
-     if(m.emissive){
-       if (k.includes('pipe_')) {
-         m.emissiveIntensity = 0.5 + 0.3*Math.sin(time*5); // Aliran menyala
-       } else {
-         m.emissiveIntensity = pe;
-       }
+     // Emissive untuk bangunan biasa
+     if(m.emissive && !k.includes('pipe_')){
+       m.emissiveIntensity = pe;
      }
    }
  }
@@ -537,19 +575,19 @@ renderer.setAnimationLoop(()=>{
  if(T.rain){rain.count=1200;for(let i=0;i<1200;i++){ry[i]-=rs[i]*dt;if(ry[i]<fl(rx[i],rz[i])){ry[i]=rnd(12,16);rx[i]=rnd(-34,34);rz[i]=rnd(-24,24)}put(rain,i,rx[i],ry[i],rz[i],1,1.8)}rain.instanceMatrix.needsUpdate=true}else rain.count=0;
  if(T.whirl&&w>-3.1){whirl.count=100;const y=Math.max(-3.15,Math.min(w,0))+.06;for(let i=0;i<100;i++){wr[i]-=dt*.35;if(wr[i]<.05)wr[i]=1.4+Math.random()*.4;wa[i]+=dt*(2+1.8/(wr[i]+.3));put(whirl,i,Math.cos(wa[i])*wr[i],y,Math.sin(wa[i])*wr[i])}whirl.instanceMatrix.needsUpdate=true}else whirl.count=0;
  
- // Aliran masuk amfiteater
+ // Aliran Surface Runoff
  if(V.inflow > 0.1){
-   inflow.count=200;
-   for(let i=0;i<200;i++){
-     inr[i] -= dt*4;
-     if(inr[i] < 2){inr[i] = 12; ina[i] = rnd(0,6.28);}
-     inx[i] = Math.cos(ina[i])*inr[i];
-     inz[i] = Math.sin(ina[i])*inr[i];
-     iny[i] = Math.max(w, -3.2) + 1.5 + (inr[i]-2)*0.2;
-     put(inflow, i, inx[i], iny[i], inz[i], 1);
+   runoff.count=300;
+   for(let i=0;i<300;i++){
+     rnr[i] -= dt*6;
+     if(rnr[i] < 10) { rnr[i] = 26; rna[i] = rnd(0,6.28); }
+     rnx[i] = Math.cos(rna[i])*rnr[i];
+     rnz[i] = Math.sin(rna[i])*rnr[i];
+     let y = 0.1 + (rnr[i]-10)*0.05; 
+     put(runoff, i, rnx[i], y, rnz[i], 1, 1);
    }
-   inflow.instanceMatrix.needsUpdate = true;
- } else inflow.count = 0;
+   runoff.instanceMatrix.needsUpdate = true;
+ } else runoff.count = 0;
 
  if(T.air){air.count=140;for(let i=0;i<140;i++){ax[i]-=as[i]*dt;if(ax[i]<21){ax[i]=rnd(31,36);ay[i]=rnd(3.4,6.3);az[i]=rnd(-2.8,2.8)}
   put(air,i,ax[i],ay[i]+Math.sin(time*3+i)*.06,az[i]);air.setColorAt(i,ct.copy(cRed).lerp(cBlue,Math.max(0,Math.min(1,(26-ax[i])/2))))}
