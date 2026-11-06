@@ -6,7 +6,7 @@
 <title>Ruang Komunal Terangkat Adaptif Banjir — Denpasar</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#dce4ed;--panel:rgba(255,255,255,0.92);--text:#1a202c;--accent:#2b6cb0;--border:rgba(226,232,240,0.9)}
+:root{--bg:#e2e8f0;--panel:rgba(255,255,255,0.95);--text:#1a202c;--accent:#2b6cb0;--border:rgba(226,232,240,0.9)}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);font-family:'Inter',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased}
 canvas{display:block;outline:none}
@@ -42,18 +42,16 @@ h1{font-size:18px;line-height:1.3;margin:0 0 4px;letter-spacing:-0.02em}
 #hud b{font-weight:700;color:var(--text)}
 #hud span{color:#718096}
 
-/* BALLOON TEXT (Pop-up) */
-#balloon{position:fixed;width:320px;padding:16px;background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:0 12px 30px rgba(0,0,0,0.2);z-index:10;pointer-events:none;opacity:0;transition:opacity 0.3s;transform:translate(-50%, -100%);font-size:13.5px;line-height:1.6;color:#2d3748}
-#balloon::after{content:'';position:absolute;bottom:-10px;left:50%;transform:translateX(-50%);border-width:10px 10px 0;border-style:solid;border-color:#fff transparent transparent transparent;}
-#balloon::before{content:'';position:absolute;bottom:-11px;left:50%;transform:translateX(-50%);border-width:11px 11px 0;border-style:solid;border-color:var(--border) transparent transparent transparent;}
+/* FIXED POP-UP BALLOON (Tengah Bawah) */
+#balloon{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);width:480px;max-width:90vw;padding:16px 20px;background:rgba(255,255,255,0.95);border:1px solid var(--border);border-radius:16px;box-shadow:0 12px 35px rgba(0,0,0,0.15);z-index:10;pointer-events:none;opacity:0;transition:opacity 0.3s;font-size:14px;line-height:1.6;color:#2d3748;text-align:center}
 #balloon b{color:var(--accent);font-weight:800}
-#balloon .t{display:block;margin-bottom:4px;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:#a0aec0}
+#balloon .t{display:block;margin-bottom:6px;font-size:12px;text-transform:uppercase;letter-spacing:0.05em;color:#a0aec0;font-weight:700}
 
 #info{position:fixed;right:20px;bottom:20px;width:320px;max-height:60vh;overflow-y:auto;padding:16px;z-index:4;font-size:13.5px;line-height:1.6}
 #info[hidden]{display:none}#info h4{margin:0 0 8px;font-size:16px;padding-right:24px;color:var(--text)}
 #info h5{margin:12px 0 4px;font-size:11px;text-transform:uppercase;color:var(--accent);letter-spacing:.05em;font-weight:700}#info p{margin:0;color:#4a5568}
 #info button{position:absolute;right:12px;top:12px;padding:4px 8px;background:#edf2f7;border-radius:6px;color:#718096}
-#hint{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:rgba(255,255,255,0.9);backdrop-filter:blur(8px);border:1px solid var(--border);border-radius:99px;padding:8px 20px;font-size:13px;font-weight:500;z-index:3;pointer-events:none;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,0.05);transition:opacity 0.3s}
+#hint{position:fixed;left:50%;top:20px;transform:translateX(-50%);background:rgba(255,255,255,0.9);backdrop-filter:blur(8px);border:1px solid var(--border);border-radius:99px;padding:8px 20px;font-size:13px;font-weight:500;z-index:3;pointer-events:none;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,0.05);transition:opacity 0.3s}
 #labels{position:fixed;inset:0;pointer-events:none;z-index:2;overflow:hidden}
 #labels div{position:absolute;left:0;top:0;font-size:11px;font-weight:600;background:rgba(255,255,255,0.9);color:#2d3748;border-radius:6px;padding:2px 6px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.1);border:1px solid rgba(0,0,0,0.05)}
 </style>
@@ -78,9 +76,8 @@ h1{font-size:18px;line-height:1.3;margin:0 0 4px;letter-spacing:-0.02em}
   <span><i style="background:#e2e8f0"></i>Beton</span><span><i style="background:#d69e2e"></i>Kayu</span>
   <span><i style="background:#48bb78"></i>Atap Hijau</span><span><i style="background:#e53e3e"></i>Jogging Track</span>
   <span><i style="background:#3182ce"></i>Jalur A (Atap)</span><span><i style="background:#ed8936"></i>Jalur B (Limpasan)</span>
-  <span><i style="background:#dd6b20"></i>Dist. Beehive</span><span><i style="background:#319795"></i>Dist. Toilet</span>
-  <span><i style="background:#68d391"></i>Dist. Taman</span><span><i style="background:#a0aec0"></i>Rockflow</span>
-  <span><i style="background:#9f7aea"></i>Overflow ke Retensi</span><span><i style="background:#4a5568"></i>Outlet ke Kota</span>
+  <span><i style="background:#9f7aea"></i>Overflow</span><span><i style="background:#4a5568"></i>Outlet Kota</span>
+  <span><i style="background:#805ad5"></i>Sampah/Sedimen</span><span><i style="background:#a0aec0"></i>Rockflow</span>
  </div>
 </div></div>
 <div id="hud" class="card">
@@ -194,9 +191,21 @@ swale1.rotation.x = -Math.PI/2;
 const swale2 = M(new THREE.RingGeometry(16, 22, 64, 1, 0.5, 1.5), swaleMat, 0, 0.05, 0, 'swale');
 swale2.rotation.x = -Math.PI/2;
 
-// Trash Rack
-const trashRackMat = mat('swale', 0x2d3748, 1, {metalness:0.8, roughness:0.2});
+/* ---------- TRASH RACK & DRYING BEDS ---------- */
+const trashRackMat = mat('swale', 0x4a5568, 1, {metalness:0.8, roughness:0.2});
 for(let i=0; i<10; i++) { M(new THREE.BoxGeometry(0.1, 1, 4), trashRackMat, 12 + Math.cos(0)*3, 0.5, -3 + i*0.8, 'trashRack'); }
+
+// Tempat Pengeringan Sampah & Sedimen
+const dryingBedMat = mat('deck', 0x718096, 1, {roughness:0.9});
+M(new THREE.BoxGeometry(6, 0.2, 6), dryingBedMat, -25, 0.1, -20, 'dryingBed');
+M(new THREE.BoxGeometry(0.2, 1.5, 6), dryingBedMat, -28, 0.85, -20, 'dryingBed');
+M(new THREE.BoxGeometry(0.2, 1.5, 6), dryingBedMat, -22, 0.85, -20, 'dryingBed');
+M(new THREE.BoxGeometry(6, 1.5, 0.2), dryingBedMat, -25, 0.85, -23, 'dryingBed');
+// Sedimen
+const sedimentMat = mat('deck', 0x4a5568, 1, {roughness:1});
+for(let i=0; i<20; i++){
+    M(new THREE.DodecahedronGeometry(rnd(0.1, 0.3), 0), sedimentMat, -25 + rnd(-2.5, 2.5), 0.3, -20 + rnd(-2.5, 2.5), 'dryingBed');
+}
 
 /* ---------- AMFITEATER ---------- */
 const R=i=>10-i*1.1,Y=i=>-3.2*i/6;
@@ -267,20 +276,26 @@ const hDry=new THREE.Color(C.terra),hWet=new THREE.Color(0x7b341e),hc=new THREE.
 const setHex=w=>{for(let i=0;i<72;i++)hex.setColorAt(i,hc.copy(hDry).lerp(hWet,w).multiplyScalar(hv[i]));hex.instanceColor.needsUpdate=true};
 
 /* ---------- MULTIPLE TANKS, FILTER, RETENTION POND, ROCKFLOW ---------- */
-// 1. Multiple Tanks
+// 1. Filtrasi Bertahap (Box)
+const filterUnit = M(new THREE.BoxGeometry(4, 2, 3), mat('filter', 0x4a5568, 1, {metalness:0.5, roughness:0.4}), 38, -4, -2, 'filter');
+M(new THREE.BoxGeometry(3.8, 1.8, 2.8), mat('filter', 0x3182ce, 0.5, {transmission:0.8, roughness:0.1}), 38, -4, -2, 'filter');
+M(new THREE.BoxGeometry(1, 2.2, 1), mat('filter', 0x2d3748, 1), 38, -4, -3.5, 'filter');
+M(new THREE.BoxGeometry(1, 2.2, 1), mat('filter', 0x2d3748, 1), 38, -4, -1.5, 'filter');
+
+// 2. Tangki A (Air Atap) & Tangki B (Limpasan)
 const tk=new THREE.Group();tk.position.set(38,-4.7,-7);scene.add(tk);
 const tankGlass = mat('tank',0xffffff,.2,{transmission:0.9,roughness:0.1,metalness:0.1,clearcoat:1,ior:1.5});
 const tankWater = [];
-[-4, 0, 4].forEach((zOffset, i) => {
-    M(new THREE.CylinderGeometry(1.6,1.6,3,32),tankGlass,0,0,zOffset,'tank',tk);
-    const tw = new THREE.Mesh(new THREE.CylinderGeometry(1.4,1.4,1,32).translate(0,.5,0), mat('tank',C.cPathA,0.8,{roughness:0.2,metalness:0.2,emissive:C.cPathA,emissiveIntensity:.2}));
-    tw.position.set(0, -1.4, zOffset); tk.add(tw);
-    tankWater.push(tw);
-});
 
-// 2. Filtrasi
-const filterUnit = M(new THREE.BoxGeometry(3, 2, 3), mat('filter', 0x4a5568, 1, {metalness:0.5, roughness:0.4}), 38, -4, -2, 'filter');
-M(new THREE.BoxGeometry(2.8, 1.8, 2.8), mat('filter', 0x3182ce, 0.5, {transmission:0.8, roughness:0.1}), 38, -4, -2, 'filter');
+// Tangki A (Depan)
+M(new THREE.CylinderGeometry(1.6,1.6,3,32),tankGlass,0,0,-4,'tankA',tk);
+const twA = new THREE.Mesh(new THREE.CylinderGeometry(1.4,1.4,1,32).translate(0,.5,0), mat('tankA',C.cPathA,0.8,{roughness:0.2,metalness:0.2,emissive:C.cPathA,emissiveIntensity:.2}));
+twA.position.set(0, -1.4, -4); tk.add(twA); tankWater.push({mesh:twA, val:0});
+
+// Tangki B (Belakang)
+M(new THREE.CylinderGeometry(1.6,1.6,3,32),tankGlass,0,0,0,'tankB',tk);
+const twB = new THREE.Mesh(new THREE.CylinderGeometry(1.4,1.4,1,32).translate(0,.5,0), mat('tankB',C.cPathB,0.8,{roughness:0.2,metalness:0.2,emissive:C.cPathB,emissiveIntensity:.2}));
+twB.position.set(0, -1.4, 0); tk.add(twB); tankWater.push({mesh:twB, val:0});
 
 // 3. Kolam Retensi (Retention Pond)
 const pondMat = mat('pond', 0x3182ce, 0.7, {transmission:0.9, roughness:0.1});
@@ -305,25 +320,27 @@ function createPipe(waypoints, color, key) {
   for (let i = 0; i < points.length - 1; i++) {
     const p1 = points[i], p2 = points[i+1], dist = p1.distanceTo(p2);
     if (dist < 0.1) continue;
-    const cyl = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, dist, 16), m);
+    const cyl = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, dist, 16), m);
     cyl.position.copy(p1).add(p2).multiplyScalar(0.5);
     cyl.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), p2.clone().sub(p1).normalize());
     cyl.userData.key = key; cyl.renderOrder = 999; group.add(cyl); pick.push(cyl);
   }
   for (let i = 1; i < points.length - 1; i++) {
-    const sph = new THREE.Mesh(new THREE.SphereGeometry(0.2, 16, 16), m);
+    const sph = new THREE.Mesh(new THREE.SphereGeometry(0.15, 16, 16), m);
     sph.position.copy(points[i]); sph.userData.key = key; sph.renderOrder = 999; group.add(sph); pick.push(sph);
   }
   scene.add(group); pipeGroups[key] = group;
 }
-// Main Pipe Lines
-createPipe([[18, 8.6, -5], [28, 8.6, -5], [28, -2, -5], [38, -2, -5], [38, -2, -2], [38, -4.7, -2], [38, -4.7, -7]], C.cPathA, 'pipe_pathA');
-createPipe([[0, -6, 0], [20, -6, 0], [20, -4, 0], [38, -4, 0], [38, -4, -2]], C.cPathB, 'pipe_pathB');
-createPipe([[38, -4.7, -7], [38, -4.7, -10], [38, 7.5, -10], [25.5, 7.5, -10], [25.5, 7.5, 0], [25.5, 5, 0]], C.cBee, 'pipe_bee');
-createPipe([[38, -4.7, -7], [38, -4.7, 2], [20, -4.7, 2], [20, -4.7, -13], [20, 2.8, -13]], C.cToilet, 'pipe_toilet');
-createPipe([[38, -4.7, -7], [38, -4.7, 8], [18, -4.7, 8], [18, -4.7, 12], [18, 2.6, 12]], C.cGarden, 'pipe_garden');
-// Overflow to Pond & Pond to City
-createPipe([[38, -4.7, -3], [38, -4.7, 11], [38, -4.7, 15]], C.cOver, 'pipe_overflow');
+// Path A (Atap -> Filtrasi -> Tangki A)
+createPipe([[18, 8.6, -5], [28, 8.6, -5], [28, -2, -5], [38, -2, -2], [38, -4.7, -2], [38, -4.7, -7], [38, -4.7, -4]], C.cPathA, 'pipe_pathA');
+// Path B (Rockflow -> Filtrasi -> Tangki B)
+createPipe([[0, -6, 0], [20, -6, 0], [20, -4, 0], [38, -4, -2], [38, -4.7, -7], [38, -4.7, 0]], C.cPathB, 'pipe_pathB');
+// Distribusi
+createPipe([[38, -4.7, -4], [38, -4.7, -10], [38, 7.5, -10], [25.5, 7.5, -10], [25.5, 7.5, 0], [25.5, 5, 0]], C.cBee, 'pipe_bee');
+createPipe([[38, -4.7, -4], [38, -4.7, 2], [20, -4.7, 2], [20, -4.7, -13], [20, 2.8, -13]], C.cToilet, 'pipe_toilet');
+createPipe([[38, -4.7, -4], [38, -4.7, 8], [18, -4.7, 8], [18, -4.7, 12], [18, 2.6, 12]], C.cGarden, 'pipe_garden');
+// Overflow & Outlet
+createPipe([[38, -4.7, 0], [38, -4.7, 11], [38, -4.7, 15]], C.cOver, 'pipe_overflow');
 createPipe([[38, -4.7, 15], [45, -4.7, 15], [45, -4.7, 30], [55, -4.7, 30]], C.cCity, 'pipe_city');
 
 
@@ -424,63 +441,63 @@ const fl=(x,z)=>x>14.4&&x<25.6&&z>-8.6&&z<2.2?8.6:x>-25.6&&x<-14.4&&z>-8.6&&z<2.
 
 /* ---------- LABELS & BALLOON ---------- */
 const LB=[['Blue-green roof',[20,9.4,-3]],['Food Hall',[-20,6,3]],['Perpustakaan',[20,6.2,3]],['Lantai DFE +2,6 m',[-6,2.8,15.5]],['Fasad keramik',[25.6,6.9,0]],['Undercroft',[-6,1,-14],0],
- ['Amfiteater',[-3,-1.5,4]],['Jogging track',[11,.4,-5]],['Lubang drainase',[0,-3,0]],['Alur Runoff',[16,0.5,0]],['Jalur A',[28,9,-5]],['Jalur B',[20,-6,0]],['Filtrasi',[38,-4,-2]],['Tangki',[38,-2.8,-7],1],['Rockflow',[-4,-4.8,3],1],['Kolam Retensi',[38,-3,15]],['Drainase Kota',[50,-4,30]],['BFE +2,0 m',[31.8,2,19]],['DFE +2,6 m',[31.8,2.9,19]]]
+ ['Amfiteater',[-3,-1.5,4]],['Jogging track',[11,.4,-5]],['Lubang drainase',[0,-3,0]],['Alur Runoff',[16,0.5,0]],['Jalur A',[28,9,-5]],['Jalur B',[20,-6,0]],
+ ['Filtrasi',[38,-4,-2]],['Tangki A',[38,-2.8,-4],1],['Tangki B',[38,-2.8,0],1],['Rockflow',[-4,-4.8,3],1],['Kolam Retensi',[38,-3,15]],['Drainase Kota',[50,-4,30]],['Pengeringan Sampah',[-25,1,-20]],['BFE +2,0 m',[31.8,2,19]],['DFE +2,6 m',[31.8,2.9,19]]]
  .map(([t,p,u])=>{const e=document.createElement('div');e.textContent=t;$('#labels').appendChild(e);return{e,p,u:u===1}});
 
 const balloon = $('#balloon'), bTitle = $('#bt'), bContent = $('#bc');
-let balloonTarget = new THREE.Vector3();
 let balloonText = "", typedChars = 0;
 
-/* ---------- DATA LANGKAH (Sistem Overflow & Retensi Baru) ---------- */
-const D0={w:-3.2,rain:0,whirl:0,pMode:'',air:0,wet:0,tank:20,mud:0,crack:0,heal:0,inflow:0,trash:0,pond:0},OV=[70,45,80,0,-1,0];
+/* ---------- DATA LANGKAH (Sistem Detail) ---------- */
+const D0={w:-3.2,rain:0,whirl:0,pMode:'',air:0,wet:0,tankA:20,tankB:20,mud:0,crack:0,heal:0,inflow:0,trash:0,pond:0},OV=[70,45,80,0,-1,0];
 const MODES={
 flood:{n:'Banjir',i:'🌊',steps:[
- {t:'Kondisi kering',f:['deck','hall','lib','under','track','people'],c:[40,30,60,0,2,0],s:{w:-3.2,tank:20},
-  n:'Ruang komunal berdiri kokoh dengan dek di elevasi +2,6 m. Undercroft dan amfiteater berfungsi penuh untuk aktivitas warga.',bp:[-13,6,0]},
+ {t:'Kondisi kering',f:['deck','hall','lib','under','track','people'],c:[40,30,60,0,2,0],s:{w:-3.2,tankA:20,tankB:20},
+  n:'Ruang komunal berdiri kokoh dengan dek di elevasi +2,6 m. Undercroft dan amfiteater berfungsi penuh untuk aktivitas warga.'},
  {t:'Hujan & Luapan',f:['roof','bowl','track','swale'],c:[30,20,40,0,2,0],s:{w:-1.5,rain:1,inflow:1},
-  n:'Hujan ekstrem atau luapan sungai masuk ke tapak melalui saluran air permukaan (runoff swale). Amfiteater yang menjorok -3,2 m menjadi ruang pertama yang tergenang, mencegah air membanjiri permukiman warga.',bp:[15,2,0]},
+  n:'Hujan ekstrem atau luapan sungai masuk ke tapak melalui saluran air permukaan (runoff swale). Amfiteater yang menjorok -3,2 m menjadi ruang pertama yang tergenang, mencegah air membanjiri permukiman warga.'},
  {t:'Air memenuhi Amfiteater',f:['bowl','under'],c:[35,20,35,0,-1,0],s:{w:1.0,rain:1,inflow:1},
-  n:'Air naik secara perlahan. Kolom-kolom ramping di undercroft membiarkan air mengalir bebas tanpa menghalangi, sehingga tidak menimbulkan tekanan yang mendorong air ke rumah tetangga.',bp:[0,-1,0]},
+  n:'Air naik secara perlahan. Kolom-kolom ramping di undercroft membiarkan air mengalir bebas tanpa menghalangi, sehingga tidak menimbulkan tekanan yang mendorong air ke rumah tetangga.'},
  {t:'Mencapai BFE +2,0 m',f:['bfe','deck'],c:[45,15,35,15,2.2,5],s:{w:2.0,rain:1,inflow:1},
-  n:'Muka air berhenti di BFE +2,0 m. Freeboard 0,6 m (selisih ke dek +2,6 m) adalah batas aman. Dek tetap kering dan warga dapat berlindung di atas.',bp:[18,2,10]}]},
+  n:'Muka air berhenti di BFE +2,0 m. Freeboard 0,6 m (selisih ke dek +2,6 m) adalah batas aman. Dek tetap kering dan warga dapat berlindung di atas.'}]},
 drain:{n:'Drainase',i:'💧',steps:[
- {t:'Penyaringan Sampah',f:['drain','bowl','trashRack'],c:[15,15,15,0,-2,0],s:{w:-1.0,whirl:1,trash:1},
-  n:'Limpasan permukaan masuk melewati saringan sampah (trash rack). Sampah padat tertahan, sedangkan air mengalir ke amfiteater dan berputar menuju Rockflow.',bp:[12,1,0]},
+ {t:'Penyaringan Sampah',f:['drain','bowl','trashRack','dryingBed'],c:[15,15,15,0,-2,0],s:{w:-1.0,whirl:1,trash:1},
+  n:'Limpasan permukaan masuk melewati saringan sampah (trash rack). Sampah padat tertahan dan dipindahkan ke tempat pengeringan, sedangkan air mengalir ke amfiteater menuju Rockflow.'},
  {t:'Resapan Rockflow',f:['rock'],c:[25,20,25,0,-4,0],s:{w:-2.0,whirl:1,x:1,trash:1},
-  n:'Air meresap ke lapisan Rockflow (batu berongga) sebagai buffer/infiltrasi. Sampah yang tersisa mengapung atau mengendap di dasar.',bp:[0,-5,0]},
- {t:'Filtrasi & Tangki (Jalur B)',f:['pipe_pathB','filter','tank'],c:[35,15,20,15,-2,-2],s:{w:-2.5,pMode:'pathB',tank:60,x:1,trash:1},
-  n:'Air dari Rockflow dipompa menuju unit Filtrasi & Disinfeksi (pipa oranye). Setelah bersih, air disimpan ke dalam Tangki Penampungan.',bp:[38,-2,-2]},
- {t:'Tangki Penuh & Overflow',f:['pipe_overflow','pond','tank'],c:[38,15,0,38,-2,10],s:{w:-2.8,pMode:'overflow',tank:95,pond:1,x:1,trash:.5},
-  n:'Tangki menyisakan sedikit kapasitas untuk hujan dadakan. Jika air berlebih, pipa overflow (ungu) menyalurkannya ke Kolam Retensi (Retention Pond).',bp:[38,-2,10]},
- {t:'Pelepasan ke Kota',f:['pipe_city','pond'],c:[45,10,25,45,-4,25],s:{w:-3.2,pMode:'city',tank:95,pond:.5,x:1,trash:0},
-  n:'Dari Kolam Retensi, air dilepas secara perlahan (dikontrol) melalui pipa outlet menuju Drainase Kota. Genangan surut tanpa membebani saluran kota secara mendadak.',bp:[45,-2,25]}]},
+  n:'Air meresap ke lapisan Rockflow (batu berongga) sebagai buffer/infiltrasi. Sedimen halus mengendap di dasar Rockflow.'},
+ {t:'Filtrasi & Tangki B',f:['pipe_pathB','filter','tankB'],c:[35,15,20,15,-2,-2],s:{w:-2.5,pMode:'pathB',tankB:60,x:1,trash:1},
+  n:'Air dari Rockflow dipompa menuju unit Filtrasi Bertahap (pipa oranye). Setelah bersih, air disimpan ke dalam Tangki B (Limpasan).'},
+ {t:'Overflow ke Retensi',f:['pipe_overflow','pond','tankB','tankA'],c:[38,15,0,38,-2,10],s:{w:-2.8,pMode:'overflow',tankA:95,tankB:95,pond:1,x:1,trash:.5},
+  n:'Jika Tangki A dan B menyisakan sedikit kapasitas (untuk hujan dadakan), pipa overflow (ungu) menyalurkan air berlebih ke Kolam Retensi.'},
+ {t:'Pelepasan ke Kota',f:['pipe_city','pond'],c:[45,10,25,45,-4,25],s:{w:-3.2,pMode:'city',tankA:95,tankB:95,pond:.5,x:1,trash:0},
+  n:'Dari Kolam Retensi, air dilepas secara perlahan (dikontrol) melalui pipa outlet menuju Drainase Kota. Genangan surut tanpa membebani saluran kota secara mendadak.'}]},
 rain:{n:'Panen Air Hujan',i:'🌧️',steps:[
- {t:'Hujan di Blue-Green Roof',f:['roof'],c:[45,30,30,20,5,-3],s:{w:-3,rain:1,tank:15},
-  n:'Hujan jatuh ke atap hijau (Blue-Green Roof). Vegetasi menahan air, memperlambat limpasan, dan memberikan pendinginan evaporatif alami pada bangunan.',bp:[20,8,-3]},
- {t:'Jalur A: Diverter & Filtrasi',f:['pipe_pathA','filter','tank'],c:[40,20,20,20,-2,-5],s:{w:-2.8,rain:1,pMode:'pathA',tank:40,x:1},
-  n:'Air mengalir melalui talang, melewati First Flush Diverter (membuang air awal yang kotor), lalu menuju unit Filtrasi & Disinfeksi (pipa biru) sebelum masuk tangki.',bp:[38,-2,-2]},
- {t:'Tangki Terisi',f:['tank','pipe_pathA'],c:[45,15,10,38,-4.5,-7],s:{w:-2.8,rain:1,pMode:'pathA',tank:85,x:1},
-  n:'Tangki penampungan terisi. Air hujan disimpan untuk digunakan pada musim kemarau, mengurangi ketergantungan pada air PDAM.',bp:[38,-2.8,-7]},
- {t:'3 Cabang Distribusi',f:['pipe_bee','pipe_toilet','pipe_garden','tank'],c:[45,30,20,20,-2,-5],s:{w:-3.2,pMode:'dist',tank:80,x:1},
-  n:'Dari tangki, air didistribusikan melalui 3 cabang pipa: Oranye (Fasad Beehive), Cyan (Flush Toilet), dan Hijau Muda (Penyiraman Taman).',bp:[38,0,-5]}]},
+ {t:'Hujan di Blue-Green Roof',f:['roof'],c:[45,30,30,20,5,-3],s:{w:-3,rain:1,tankA:15,tankB:20},
+  n:'Hujan jatuh ke atap hijau (Blue-Green Roof). Vegetasi menahan air, memperlambat limpasan, dan memberikan pendinginan evaporatif alami pada bangunan.'},
+ {t:'Filtrasi & Tangki A',f:['pipe_pathA','filter','tankA'],c:[40,20,20,20,-2,-5],s:{w:-2.8,rain:1,pMode:'pathA',tankA:40,tankB:20,x:1},
+  n:'Air mengalir melalui talang, melewati First Flush Diverter, lalu menuju unit Filtrasi Bertahap (pipa biru) sebelum masuk ke Tangki A (Air Atap).'},
+ {t:'Tangki Terisi',f:['tankA','pipe_pathA'],c:[45,15,10,38,-4.5,-4],s:{w:-2.8,rain:1,pMode:'pathA',tankA:85,tankB:20,x:1},
+  n:'Tangki A penampungan terisi. Air hujan disimpan untuk digunakan pada musim kemarau, mengurangi ketergantungan pada air PDAM.'},
+ {t:'3 Cabang Distribusi',f:['pipe_bee','pipe_toilet','pipe_garden','tankA'],c:[45,30,20,20,-2,-5],s:{w:-3.2,pMode:'dist',tankA:80,tankB:20,x:1},
+  n:'Dari Tangki A, air didistribusikan melalui 3 cabang pipa: Oranye (Fasad Beehive), Cyan (Flush Toilet), dan Hijau Muda (Penyiraman Taman).'}]},
 cool:{n:'Beehive Cooling',i:'🐝',steps:[
- {t:'Aliran ke Fasad',f:['pipe_bee','facade','tank'],c:[40,20,20,25,4,-5],s:{w:-3.2,pMode:'bee',tank:75,x:1},
-  n:'Pipa Oranye menyalurkan air dari tangki menuju bagian atas Fasad Keramik. Bangunan transparan memperlihatkan aliran air naik ke lantai atas.',bp:[25.5,6,0]},
- {t:'Pembasahan Keramik',f:['facade','pipe_bee'],c:[45,15,15,25,4.5,0],s:{w:-3.2,pMode:'bee',wet:1,tank:70,x:1},
-  n:'Air menetes membasahi panel keramik berpori (Hexagonal). Warna panel berubah menjadi lebih gelap saat basah. Air tertahan di pori-pori keramik.',bp:[25.5,4,0]},
- {t:'Penguapan & Pendinginan',f:['facade'],c:[38,10,10,25,4.5,0],s:{w:-3.2,air:1,wet:1,tank:68,x:1},
-  n:'Udara panas (merah) masuk melewati pori keramik yang basah. Terjadi penguapan yang menyerap kalor, mengubah udara menjadi sejuk (biru). Efek pendinginan pasif tanpa AC.',bp:[25.5,4,0]},
- {t:'Udara Sejuk ke Ruangan',f:['lib','facade'],c:[35,20,20,21,4,-1],s:{w:-3.2,air:1,wet:1,tank:66},
-  n:'Udara sejuk dialirkan masuk ke dalam Perpustakaan. Kenyamanan termal tercapai dengan konsumsi energi yang sangat rendah.',bp:[20,5,0]}]},
+ {t:'Aliran ke Fasad',f:['pipe_bee','facade','tankA'],c:[40,20,20,25,4,-5],s:{w:-3.2,pMode:'bee',tankA:75,x:1},
+  n:'Pipa Oranye menyalurkan air dari tangki menuju bagian atas Fasad Keramik. Bangunan transparan memperlihatkan aliran air naik ke lantai atas.'},
+ {t:'Pembasahan Keramik',f:['facade','pipe_bee'],c:[45,15,15,25,4.5,0],s:{w:-3.2,pMode:'bee',wet:1,tankA:70,x:1},
+  n:'Air menetes membasahi panel keramik berpori (Hexagonal). Warna panel berubah menjadi lebih gelap saat basah. Air tertahan di pori-pori keramik.'},
+ {t:'Penguapan & Pendinginan',f:['facade'],c:[38,10,10,25,4.5,0],s:{w:-3.2,air:1,wet:1,tankA:68,x:1},
+  n:'Udara panas (merah) masuk melewati pori keramik yang basah. Terjadi penguapan yang menyerap kalor, mengubah udara menjadi sejuk (biru). Efek pendinginan pasif tanpa AC.'},
+ {t:'Udara Sejuk ke Ruangan',f:['lib','facade'],c:[35,20,20,21,4,-1],s:{w:-3.2,air:1,wet:1,tankA:66},
+  n:'Udara sejuk dialirkan masuk ke dalam Perpustakaan. Kenyamanan termal tercapai dengan konsumsi energi yang sangat rendah.'}]},
 post:{n:'Pascabanjir',i:'🧹',steps:[
- {t:'Pembersihan Sampah',f:['bowl','track','under','trash'],c:[30,20,35,0,-1,0],s:{w:-2.6,mud:1,tank:50,trash:0},
-  n:'Air telah surut. Tumpukan sampah yang tertahan di saringan dan amfiteater dibersihkan warga secara gotong royong (perhatikan sampah menghilang).',bp:[0,-2,0]},
- {t:'Pusat Pendataan',f:['hall','lib','people'],c:[0,30,50,0,3,0],s:{w:-3.2,mud:.6,tank:50},
-  n:'Food Hall yang tetap kering (+2,6 m) beralih fungsi menjadi posko pendataan kerusakan dan distribusi bantuan logistik bagi warga yang terdampak.',bp:[-15,6,0]},
- {t:'Self-Healing Concrete',f:['deck','deck_crack'],c:[20,20,20,10,2.5,5],s:{w:-3.2,crack:1,heal:1,tank:50},
-  n:'Siklus basah-kering memicu retak rambut pada dek. Bakteri di dalam beton (Self-Healing) aktif saat terkena air, memproduksi kalsit untuk menutup retakan secara mandiri.',bp:[10,3,5]},
- {t:'Pulih & Beroperasi',f:['hall','lib','roof','people','track'],c:[50,35,50,0,2,0],s:{w:-3.2,crack:0,heal:0,tank:50},
-  n:'Ruang komunal kembali beroperasi sepenuhnya. Biaya pemeliharaan ditekan berkat beton self-healing, dan aktivitas sosial-ekonomi warga kembali pulih.',bp:[0,5,0]}]}};
+ {t:'Pengeringan Sampah & Sedimen',f:['dryingBed','trash'],c:[-25,15,-20,-25,0,-20],s:{w:-2.6,mud:1,tankA:50,trash:0},
+  n:'Air surut. Sampah yang tertahan di saringan dipindahkan ke Tempat Pengeringan Sampah. Sedimen dari Rockflow dikeringkan di bed sebelahnya sebelum dibuang.'},
+ {t:'Pusat Pendataan',f:['hall','lib','people'],c:[0,30,50,0,3,0],s:{w:-3.2,mud:.6,tankA:50},
+  n:'Food Hall yang tetap kering (+2,6 m) beralih fungsi menjadi posko pendataan kerusakan dan distribusi bantuan logistik bagi warga yang terdampak.'},
+ {t:'Self-Healing Concrete',f:['deck','deck_crack'],c:[20,20,20,10,2.5,5],s:{w:-3.2,crack:1,heal:1,tankA:50},
+  n:'Siklus basah-kering memicu retak rambut pada dek. Bakteri di dalam beton (Self-Healing) aktif saat terkena air, memproduksi kalsit untuk menutup retakan secara mandiri.'},
+ {t:'Pulih & Beroperasi',f:['hall','lib','roof','people','track'],c:[50,35,50,0,2,0],s:{w:-3.2,crack:0,heal:0,tankA:50},
+  n:'Ruang komunal kembali beroperasi sepenuhnya. Biaya pemeliharaan ditekan berkat beton self-healing, dan aktivitas sosial-ekonomi warga kembali pulih.'}]}};
 
 const INFO={
  under:['Undercroft','Ruang terbuka setinggi 2 m di bawah dek beton, ditopang kolom ramping.','Hari biasa dipakai berdagang dan parkir. Saat banjir, air mengalir bebas di sela kolom sehingga tidak mendorong air ke tetangga (Dry Floodproofing). (Barsley, 2020).',[-4,15,40,0,1,8]],
@@ -490,8 +507,9 @@ const INFO={
  hall:['Food Hall','Paviliun kayu 10 × 16 m dengan atap terekspos, meja panjang, dan stand makanan.','Pasar kuliner; saat banjir menjadi dapur umum dan pos distribusi. (Jensen & Donovan, 2026).',[-30,20,35,-20,4,-2]],
  lib:['Perpustakaan','Paviliun kayu 10 × 16 m, rak buku, meja baca, dan Fasad Beehive di timur.','Ruang belajar dan arsip; saat krisis menjadi ruang tenang. Dingin berkat pendinginan evaporatif pasif.',[30,20,35,20,4,-2]],
  roof:['Blue-green roof','Atap miring berlapis vegetasi sage-moss dengan kolam dangkal.','Menahan limpasan hujan, mendinginkan lewat evapotranspirasi, menyalurkan air ke tangki. (Jensen & Donovan, 2026).',[40,25,20,20,6,-3]],
- filter:['Filtrasi & Disinfeksi','Unit pengolahan air di bawah tanah untuk menyaring sedimen dan menetralkan bakteri.','Memastikan air dari Jalur A maupun Jalur B aman untuk disimpan di tangki non-potabel sebelum digunakan kembali.',[38,15,0,38,-4,-2],1],
- tank:['Multiple Tangki','Tiga silinder transparan Ø 3,2 m di −6,2 m.','Menyimpan air yang telah diolah. Jika penuh, air dialirkan ke kolam retensi.',[45,10,5,38,-4.7,-7],1],
+ filter:['Filtrasi Bertahap','Kotak filtrasi bertingkat: penyaring pasir, karbon aktif, dan disinfeksi UV.','Memastikan air dari Jalur A maupun Jalur B aman untuk disimpan di tangki non-potabel sebelum digunakan kembali.',[38,15,0,38,-4,-2],1],
+ tankA:['Tangki A (Atap)','Silinder transparan khusus menampung air hujan dari atap.','Menyimpan air hujan bersih. Jika penuh, air dialirkan ke kolam retensi.',[45,10,-4,38,-4.7,-4],1],
+ tankB:['Tangki B (Limpasan)','Silinder transparan khusus menampung limpasan dari amfiteater.','Menyimpan air limpasan yang telah difiltrasi. Jika penuh, dialirkan ke kolam retensi.',[45,10,0,38,-4.7,0],1],
  pond:['Kolam Retensi','Kolam penampung cadangan di luar tangki.','Menampung limpasan saat tangki penuh (overflow), lalu dilepas perlahan ke saluran kota.',[45,10,15,38,-4,15],1],
  rock:['Rockflow','Lapisan batu bulat berongga (±3 m) di bawah amfiteater.','Penyangga resapan: rongga menampung air, memotong puncak aliran, menyalurkan ke tangki. (Barsley, 2020).',[20,15,25,0,-5,0],1],
  facade:['Fasad keramik Beehive','Layar vertikal 12 × 6 hexagon keramik porous di timur Perpustakaan.','Dibasahi air tampungan; penguapan di pori mendinginkan udara yang masuk. Menggelap saat basah.',[45,15,10,25.4,4.5,0]],
@@ -499,10 +517,11 @@ const INFO={
  ramp:['Ramp landai','Jalur melengkung ±53 m dengan kemiringan ±5% dari tanah ke dek.','Akses lansia, kursi roda, dan gerobak menuju dek +2,6 m, juga saat banjir.',[-20,20,60,-8,1.5,30]],
  drain:['Lubang drainase','Satu lubang besar dan lima lubang kecil di dasar amfiteater.','Mengalirkan air ke Rockflow dan tangki tanpa membebani saluran kota.',[15,15,15,0,-3,0]],
  trashRack:['Saringan Sampah','Grid logam di inlet saluran runoff.','Menahan sampah padat (daun, plastik) agar tidak menyumbat Rockflow dan pipa bawah tanah.',[12,2,0]],
+ dryingBed:['Pengeringan Sampah & Sedimen','Bak beton terbuka untuk mengeringkan sampah dan sedimen.','Sampah dijemur agar kering, sedimen diendapkan. Setelah kering, diangkut ke TPA/Pengolahan.',[-25,2,-20]],
  trash:['Tumpukan Sampah','Sampah yang terbawa arus limpasan.','Harus diangkut secara manual saat pembersihan pascabanjir agar tidak membusuk di amfiteater.',[0,-2,0]],
- pipe_pathA:['Jalur A (Air Hujan)','Alur: Blue-Green Roof → First Flush Diverter → Filtrasi → Tangki.','Mengalirkan air hujan bersih. First flush membuang air awal yang membawa debu atap.',[35,10,-5]],
- pipe_pathB:['Jalur B (Limpasan)','Alur: Amfiteater → Rockflow → Filtrasi → Tangki.','Mengalirkan limpasan permukaan. Air diolah agar aman digunakan kembali.',[20,-5,0]],
- pipe_overflow:['Pipa Overflow','Alur dari Tangki ke Kolam Retensi.','Mengalihkan air jika kapasitas tangki hampir penuh, mencegah luapan.',[38,-2,10]],
+ pipe_pathA:['Jalur A (Air Hujan)','Alur: Blue-Green Roof → First Flush Diverter → Filtrasi → Tangki A.','Mengalirkan air hujan bersih. First flush membuang air awal yang membawa debu atap.',[35,10,-5]],
+ pipe_pathB:['Jalur B (Limpasan)','Alur: Amfiteater → Rockflow → Filtrasi → Tangki B.','Mengalirkan limpasan permukaan. Air diolah agar aman digunakan kembali.',[20,-5,0]],
+ pipe_overflow:['Pipa Overflow','Alur dari Tangki A/B ke Kolam Retensi.','Mengalihkan air jika kapasitas tangki hampir penuh, mencegah luapan.',[38,-2,10]],
  pipe_city:['Outlet Kota','Alur dari Kolam Retensi ke Drainase Kota.','Melepaskan air secara perlahan agar saluran kota tidak kewalahan.',[45,-2,25]],
  pipe_bee:['Pipa Distribusi Beehive','Pipa oranye dari tangki naik ke Fasad Beehive.','Mendistribusikan air non-potabel untuk pendinginan evaporatif fasad.',[35,10,-5]],
  pipe_toilet:['Pipa Distribusi Toilet','Pipa cyan dari tangki menuju area toilet Food Hall.','Menggunakan air non-potabel untuk flushing toilet, menghemat air bersih.',[25,-4.7,2]],
@@ -512,7 +531,7 @@ const INFO={
 
 /* ---------- STATE & LOGIC ---------- */
 let T={...D0},mode=null,idx=0,playing=true,tm=0,follow=true,ud=false,time=0,dt=0,focus=new Set(),hoverKey=null;
-const V={w:-3.2,wet:0,tank:20,xray:0,mud:0,crack:0,heal:0,inflow:0,trash:0,pond:0};
+const V={w:-3.2,wet:0,tankA:20,tankB:20,xray:0,mud:0,crack:0,heal:0,inflow:0,trash:0,pond:0};
 const gp=new THREE.Vector3(...OV.slice(0,3)),gt=new THREE.Vector3(...OV.slice(3));
 camera.position.copy(gp);controls.target.copy(gt);
 const STEP_MS=16000,xr=$('#xr'),lb=$('#lb');
@@ -523,7 +542,6 @@ function goStep(i,user){const m=MODES[mode],st=m.steps[i];idx=i;tm=0;T={...D0,..
  $('#bk').disabled=i===0;$('#nx').disabled=i===m.steps.length-1;$('#hs').textContent=`${m.n} ${i+1}/${m.steps.length}`;
  
  // POP UP BALOON
- balloonTarget.set(...st.bp);
  balloonText = st.n; typedChars = 0; bContent.textContent = ""; bTitle.textContent = st.t;
  balloon.style.opacity = 1;
 }
@@ -531,7 +549,7 @@ function startMode(k){mode=k;$('#step').hidden=false;$('#hint').style.opacity=0;
  document.querySelectorAll('#modes button').forEach(b=>b.classList.toggle('on',b.dataset.k===k));goStep(0,true)}
 function closeMode(){mode=null;T={...D0};focus=new Set();$('#step').hidden=true;$('#hint').style.opacity=1;$('#hs').textContent='Jelajah Bebas';$('#info').hidden=true;
  document.querySelectorAll('#modes button').forEach(b=>b.classList.remove('on')); balloon.style.opacity = 0;}
-function reset(){closeMode();xr.checked=false;lb.checked=true;Object.assign(V,{w:-3.2,wet:0,tank:20,xray:0,mud:0,crack:0,heal:0,inflow:0,trash:0,pond:0});camTo(OV);camera.position.copy(gp);controls.target.copy(gt);follow=true}
+function reset(){closeMode();xr.checked=false;lb.checked=true;Object.assign(V,{w:-3.2,wet:0,tankA:20,tankB:20,xray:0,mud:0,crack:0,heal:0,inflow:0,trash:0,pond:0});camTo(OV);camera.position.copy(gp);controls.target.copy(gt);follow=true}
 function showInfo(k){const d=INFO[k];if(!d)return;$('#it').textContent=d[0];$('#ib').textContent=d[1];$('#if').textContent=d[2];$('#info').hidden=false;
  if(mode) closeMode();
  focus=new Set([k]);if(d[4])xr.checked=true;camTo(d[3]);follow=true}
@@ -567,7 +585,8 @@ renderer.setAnimationLoop(()=>{
  if(mode&&playing){const n=MODES[mode].steps.length;tm+=dt*1000;if(tm>=STEP_MS){if(idx<n-1)goStep(idx+1,false);else{playing=false;tm=STEP_MS;$('#pp').textContent='▶ Ulang'}}}
  $('#sb').style.width=mode?((idx+Math.min(tm/STEP_MS,1))/MODES[mode].steps.length*100)+'%':'0';
  
- V.w=mv(V.w,T.w,.55*dt);V.tank=mv(V.tank,T.tank,6*dt);V.wet=mv(V.wet,T.wet,.35*dt);V.mud=mv(V.mud,T.mud,.3*dt);
+ V.w=mv(V.w,T.w,.55*dt);V.tankA=mv(V.tankA,T.tankA,6*dt);V.tankB=mv(V.tankB,T.tankB,6*dt);
+ V.wet=mv(V.wet,T.wet,.35*dt);V.mud=mv(V.mud,T.mud,.3*dt);
  V.crack=mv(V.crack,T.crack,1.5*dt);V.heal=mv(V.heal,T.heal,1.5*dt);V.inflow=mv(V.inflow,T.inflow||0,1.5*dt);
  V.trash=mv(V.trash,T.trash||0,2*dt); V.pond=mv(V.pond,T.pond||0,2*dt);
  
@@ -600,9 +619,9 @@ renderer.setAnimationLoop(()=>{
 
  for(const k in G){
    const g=G[k];
-   let targetOpacity = (!focus.size||focus.has(k)||KEEP.has(k)) ? 1 : 0.15;
+   let targetOpacity = (!focus.size||focus.has(k)||KEEP.has(k)) ? 1 : 0.05; // Sangat transparan jika tidak fokus
    if (T.pMode) {
-     if (k.includes('pipe_') || k === 'tank' || k === 'rock' || k === 'filter' || k === 'pond') targetOpacity = 1;
+     if (k.includes('pipe_') || k === 'tank' || k === 'rock' || k === 'filter' || k === 'pond' || k === 'tankA' || k === 'tankB') targetOpacity = 1;
      else targetOpacity = 0.05; 
    }
    g.dim += (targetOpacity-g.dim)*Math.min(1,dt*6);
@@ -622,7 +641,9 @@ renderer.setAnimationLoop(()=>{
  mCrack.emissiveIntensity = V.heal * (0.5 + 0.5*Math.sin(time*4));
  
  const w=V.w;
- tankWater.forEach((tw, i) => { tw.scale.y = Math.max(.01, 2.8*V.tank/100); });
+ // Update Tangki A & B
+ tankWater[0].mesh.scale.y = Math.max(.01, 2.8*V.tankA/100);
+ tankWater[1].mesh.scale.y = Math.max(.01, 2.8*V.tankB/100);
  
  // Update Kolam Retensi
  pondWater.scale.y = Math.max(.01, V.pond);
@@ -701,19 +722,12 @@ renderer.setAnimationLoop(()=>{
  
  const k=1-Math.exp(-dt*2.2);if(follow){camera.position.lerp(gp,k);controls.target.lerp(gt,k)}
  controls.update();
- $('#hw').textContent=(w>=0?'+':'−')+Math.abs(w).toFixed(2).replace('.',',')+' m';$('#ht').textContent=Math.round(V.tank)+'%';
+ $('#hw').textContent=(w>=0?'+':'−')+Math.abs(w).toFixed(2).replace('.',',')+' m';$('#ht').textContent=Math.round(V.tankA)+'%';
  
- // Update Balloon Text
+ // Update Balloon Text (Typewriter)
  if(mode && balloonText) {
-     tv.copy(balloonTarget).project(camera);
-     let sx = (tv.x * .5 + .5) * innerWidth;
-     let sy = (-tv.y * .5 + .5) * innerHeight;
-     balloon.style.left = sx + 'px';
-     balloon.style.top = (sy - 20) + 'px';
-     
-     // Typewriter effect
      if (typedChars < balloonText.length) {
-         typedChars += dt * 50; // Kecepatan ketik
+         typedChars += dt * 50; 
          bContent.textContent = balloonText.slice(0, Math.floor(typedChars));
      }
  } else {
