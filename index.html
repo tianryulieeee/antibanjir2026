@@ -518,6 +518,15 @@ renderer.setAnimationLoop(()=>{
  const isXray = xr.checked || T.pMode !== '';
  V.xray = mv(V.xray, isXray ? 1 : 0, 3*dt);
 
+ // FIX BUG TANAH MENUTUPI TANGKI
+ if(V.xray > 0.5){
+    mGrass.depthWrite = false;
+    mSoil.depthWrite = false;
+ } else {
+    mGrass.depthWrite = true;
+    mSoil.depthWrite = true;
+ }
+
  mGrass.userData.b=mSoil.userData.b=1-.88*V.xray;mBowl.userData.b=1-.55*V.xray;
  mGrass.color.copy(grassB).lerp(mudC,V.mud*.8);mBowl.color.copy(bowlB).lerp(bowlM,V.mud*.8);
  
