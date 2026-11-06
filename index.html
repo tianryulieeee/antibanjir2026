@@ -4,53 +4,74 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Ruang Komunal Terangkat Adaptif Banjir — Denpasar</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#cbd5e1;--panel:rgba(255,255,255,0.95);--text:#0f172a;--accent:#2563eb;--border:rgba(0,0,0,0.1)}
+:root{--bg:#0f172a;--panel:rgba(30,41,59,0.9);--text:#e2e8f0;--accent:#38bdf8;--border:rgba(255,255,255,0.1)}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);font-family:'Inter',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased}
 canvas{display:block;outline:none}
-button{font:inherit;cursor:pointer;border:0;border-radius:6px;padding:8px 12px;background:#fff;color:var(--text);font-weight:600;transition:all .2s;box-shadow:0 1px 3px rgba(0,0,0,0.1);border:1px solid var(--border)}
+
+/* --- INTRO SLIDES CSS --- */
+#intro-overlay{position:fixed;inset:0;background:linear-gradient(135deg, #0f172a 0%, #1e293b 100%);z-index:9999;display:flex;flex-direction:column;justify-content:center;align-items:center;transition:opacity 0.8s ease, visibility 0.8s;}
+#intro-overlay.hidden{opacity:0;visibility:hidden;}
+.slide{display:none;opacity:0;transform:translateY(20px);transition:all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);text-align:center;max-width:800px;padding:40px;}
+.slide.active{display:block;opacity:1;transform:translateY(0);}
+.slide h1{font-size:48px;font-weight:800;line-height:1.1;margin-bottom:20px;letter-spacing:-1px;background:linear-gradient(to right, #38bdf8, #818cf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.slide h2{font-size:32px;font-weight:700;margin-bottom:16px;color:#f8fafc;}
+.slide p{font-size:18px;line-height:1.6;color:#94a3b8;margin-bottom:30px;}
+.slide .tagline{font-size:14px;text-transform:uppercase;letter-spacing:2px;color:#38bdf8;font-weight:700;margin-bottom:10px;display:block;}
+.slide .icon{font-size:64px;margin-bottom:20px;}
+.nav-btns{margin-top:30px;display:flex;gap:16px;justify-content:center;}
+.btn-slide{background:#38bdf8;color:#0f172a;border:none;padding:14px 32px;font-size:16px;font-weight:700;border-radius:99px;cursor:pointer;transition:all 0.3s;}
+.btn-slide:hover{transform:translateY(-2px);box-shadow:0 10px 20px rgba(56,189,248,0.3);}
+.btn-slide.secondary{background:transparent;border:1px solid #475569;color:#e2e8f0;}
+.btn-slide.secondary:hover{border-color:#38bdf8;color:#38bdf8;box-shadow:none;}
+.dots{display:flex;gap:8px;margin-top:40px;}
+.dot{width:10px;height:10px;border-radius:50%;background:#334155;transition:0.3s;}
+.dot.active{background:#38bdf8;transform:scale(1.2);}
+/* ------------------------- */
+
+button{font:inherit;cursor:pointer;border:0;border-radius:6px;padding:8px 12px;background:#fff;color:#0f172a;font-weight:600;transition:all .2s;box-shadow:0 1px 3px rgba(0,0,0,0.1);border:1px solid var(--border)}
 button:hover:not(:disabled){background:#f1f5f9;box-shadow:0 4px 6px rgba(0,0,0,0.05);transform:translateY(-1px)}
 button:disabled{opacity:.4;cursor:default;transform:none;box-shadow:none}
-.card{background:var(--panel);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:12px;box-shadow:0 10px 25px rgba(0,0,0,0.1)}
-#panel{position:fixed;left:20px;top:20px;width:340px;max-height:calc(100% - 40px);display:flex;flex-direction:column;z-index:5}
+.card{background:var(--panel);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:12px;box-shadow:0 10px 25px rgba(0,0,0,0.5)}
+#panel{position:fixed;left:20px;top:20px;width:340px;max-height:calc(100% - 40px);display:flex;flex-direction:column;z-index:5;transition:opacity 0.5s;}
 #ph{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;font-weight:800;border-bottom:1px solid var(--border);letter-spacing:0.5px}
 #pb{overflow-y:auto;padding:16px}.collapsed #pb{display:none}
 h1{font-size:16px;line-height:1.3;margin:0 0 4px;font-weight:700}
-.sub{margin:0 0 16px;font-size:12px;color:#64748b}
+.sub{margin:0 0 16px;font-size:12px;color:#94a3b8}
 .std{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px}
-.std span{background:#eff6ff;color:var(--accent);border-radius:4px;padding:4px 8px;font-size:11px;font-weight:600;border:1px solid #bfdbfe}
+.std span{background:rgba(56,189,248,0.1);color:var(--accent);border-radius:4px;padding:4px 8px;font-size:11px;font-weight:600;border:1px solid rgba(56,189,248,0.2)}
 #modes{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
-#modes button{text-align:left;padding:10px;font-size:12px;background:#f8fafc;border:1px solid var(--border);box-shadow:none}
-#modes button.on{border-color:var(--accent);background:#eff6ff;color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
-#reset{width:100%;margin-bottom:16px;background:#fef2f2;color:#dc2626;border-color:#fecaca}
-#step{background:#fff;border-radius:8px;padding:14px;margin-bottom:16px;border:1px solid var(--border);box-shadow:0 4px 12px rgba(0,0,0,0.05)}#step[hidden]{display:none}
+#modes button{text-align:left;padding:10px;font-size:12px;background:rgba(255,255,255,0.05);color:#e2e8f0;border:1px solid var(--border);box-shadow:none}
+#modes button.on{border-color:var(--accent);background:rgba(56,189,248,0.15);color:var(--accent)}
+#reset{width:100%;margin-bottom:16px;background:rgba(239,68,68,0.1);color:#f87171;border-color:rgba(239,68,68,0.2)}
+#step{background:rgba(0,0,0,0.3);border-radius:8px;padding:14px;margin-bottom:16px;border:1px solid var(--border)}#step[hidden]{display:none}
 #sc{font-size:10px;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:1px}
 #st{margin:4px 0 8px;font-size:15px;font-weight:700}
-#sn{margin:0 0 12px;font-size:13px;line-height:1.6;color:#334155;max-height:20vh;overflow:auto}
-.bar{height:4px;background:#f1f5f9;border-radius:2px;overflow:hidden;margin-bottom:12px}.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width 0.1s linear}
+#sn{margin:0 0 12px;font-size:13px;line-height:1.6;color:#cbd5e1;max-height:20vh;overflow:auto}
+.bar{height:4px;background:rgba(255,255,255,0.1);border-radius:2px;overflow:hidden;margin-bottom:12px}.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width 0.1s linear}
 .ctl{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.ctl button{padding:6px 2px;font-size:11px}
-.ctl button#nx{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:700}
-.tg{display:flex;gap:16px;font-size:12px;font-weight:600;margin:12px 0;color:#475569}
+.ctl button#nx{background:var(--accent);color:#0f172a;border-color:var(--accent);font-weight:700}
+.tg{display:flex;gap:16px;font-size:12px;font-weight:600;margin:12px 0;color:#94a3b8}
 .tg label{display:flex;align-items:center;gap:6px;cursor:pointer}
-#legend{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;font-size:11px;color:#475569}
+#legend{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;font-size:11px;color:#94a3b8}
 #legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
-#hud{position:fixed;right:20px;top:20px;padding:12px 16px;font-size:12px;z-index:4;min-width:200px}
-#hud div{display:flex;justify-content:space-between;gap:16px;padding:4px 0;border-bottom:1px solid rgba(0,0,0,0.05)}
+#hud{position:fixed;right:20px;top:20px;padding:12px 16px;font-size:12px;z-index:4;min-width:200px;transition:opacity 0.5s;}
+#hud div{display:flex;justify-content:space-between;gap:16px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
 #hud div:last-child{border-bottom:none}
-#hud b{font-weight:800;color:var(--text)}
-#hud span{color:#64748b;font-weight:600}
+#hud b{font-weight:800;color:#fff}
+#hud span{color:#94a3b8}
 
-#balloon{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);width:520px;max-width:90vw;padding:16px 24px;background:rgba(255,255,255,0.95);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:12px;box-shadow:0 20px 40px rgba(0,0,0,0.15);z-index:10;pointer-events:none;opacity:0;transition:opacity 0.5s;font-size:14px;line-height:1.6;color:var(--text);text-align:center}
+#balloon{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);width:520px;max-width:90vw;padding:16px 24px;background:rgba(15,23,42,0.9);backdrop-filter:blur(10px);border:1px solid rgba(56,189,248,0.3);border-radius:12px;box-shadow:0 20px 40px rgba(0,0,0,0.5);z-index:10;pointer-events:none;opacity:0;transition:opacity 0.5s;font-size:14px;line-height:1.6;color:#e2e8f0;text-align:center}
 #balloon .t{display:block;margin-bottom:6px;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--accent);font-weight:800}
 
 #info{position:fixed;right:20px;bottom:20px;width:320px;max-height:60vh;overflow-y:auto;padding:16px;z-index:4;font-size:13px;line-height:1.6}
-#info[hidden]{display:none}#info h4{margin:0 0 8px;font-size:15px;padding-right:24px;color:var(--text)}
-#info h5{margin:12px 0 4px;font-size:10px;text-transform:uppercase;color:var(--accent);letter-spacing:1px;font-weight:800}#info p{margin:0;color:#334155}
-#info button{position:absolute;right:12px;top:12px;padding:4px 8px;background:#f1f5f9;border-radius:4px;color:var(--text)}
+#info[hidden]{display:none}#info h4{margin:0 0 8px;font-size:15px;padding-right:24px;color:#fff}
+#info h5{margin:12px 0 4px;font-size:10px;text-transform:uppercase;color:var(--accent);letter-spacing:1px;font-weight:800}#info p{margin:0;color:#cbd5e1}
+#info button{position:absolute;right:12px;top:12px;padding:4px 8px;background:rgba(255,255,255,0.1);border-radius:4px;color:#fff}
 #labels{position:fixed;inset:0;pointer-events:none;z-index:2;overflow:hidden}
-#labels div{position:absolute;left:0;top:0;font-size:10px;font-weight:700;background:rgba(255,255,255,0.9);color:#0f172a;border-radius:4px;padding:3px 8px;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,0.1);border:1px solid var(--border);letter-spacing:0.5px}
+#labels div{position:absolute;left:0;top:0;font-size:10px;font-weight:700;background:rgba(15,23,42,0.9);color:#fff;border-radius:4px;padding:3px 8px;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1);letter-spacing:0.5px}
 </style>
 <script type="importmap">
 {
@@ -62,9 +83,57 @@ h1{font-size:16px;line-height:1.3;margin:0 0 4px;font-weight:700}
 </script>
 </head>
 <body>
+
+<!-- INTRO SLIDES OVERLAY -->
+<div id="intro-overlay">
+  <div class="slide active">
+    <span class="tagline">Proyek Arsitektur Regeneratif</span>
+    <h1>Ruang Komunal Terangkat Adaptif Banjir</h1>
+    <p>Denpasar, Bali · Community Food Hall & Perpustakaan<br>Integrasi Sistem Retensi, Filtrasi, dan Pendinginan Pasif.</p>
+  </div>
+  
+  <div class="slide">
+    <div class="icon">🌊</div>
+    <span class="tagline">Isu & Masalah</span>
+    <h2>Tantangan Banjir & Ruang Terbatas</h2>
+    <p>Banjir ekstrem dan luapan air sering melumpuhkan aktivitas warga. Di sisi lain, ruang komunal yang aman dan dapat diandalkan saat krisis masih sangat minim. Pendekatan konvensional (menahan air dengan tanggul) justru memperparah banjir di wilayah sekitar.</p>
+  </div>
+
+  <div class="slide">
+    <div class="icon">🏗️</div>
+    <span class="tagline">Strategi Penanganan</span>
+    <h2>Memberi Ruang pada Air (Site-First)</h2>
+    <p>Bangunan diangkat ke elevasi +2,6 m (DFE) untuk memberikan ruang retensi di bawahnya (Amfiteater). Air ditampung, disaring melalui sistem Rockflow dan Filtrasi, lalu dialirkan ke Tangki Penampung. Jika penuh, air melimpah ke Kolam Retensi dan dilepas perlahan ke kota.</p>
+  </div>
+
+  <div class="slide">
+    <div class="icon">⚙️</div>
+    <span class="tagline">Simulasi Sistem</span>
+    <h2>Siap Memulai Eksplorasi?</h2>
+    <p>Mari kita bedah bagaimana setiap teknologi—dari Blue-Green Roof hingga Beehive Cooling—bekerja secara step-by-step dalam menghadapi kondisi Kering, Banjir, dan Pascabanjir.</p>
+    <div class="nav-btns">
+      <button class="btn-slide" onclick="startSimulation()">Mulai Simulasi 3D ▶</button>
+    </div>
+  </div>
+
+  <div class="nav-btns" id="nav-container">
+    <button class="btn-slide secondary" id="btn-prev" onclick="changeSlide(-1)" style="display:none;">◀ Sebelumnya</button>
+    <button class="btn-slide" id="btn-next" onclick="changeSlide(1)">Selanjutnya ▶</button>
+  </div>
+  
+  <div class="dots">
+    <div class="dot active"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+  </div>
+</div>
+
 <div id="labels"></div>
 <div id="balloon"><span class="t" id="bt">Penjelasan Sistem</span><span id="bc"></span></div>
-<div id="panel" class="card"><div id="ph"><span>ARCHITECTURAL SYSTEM</span><button id="col" style="padding:2px 6px;border:none;background:transparent">▾</button></div>
+
+<!-- HIDE UI INITIALLY -->
+<div id="panel" class="card" style="opacity:0; pointer-events:none;"><div id="ph"><span>ARCHITECTURAL SYSTEM</span><button id="col" style="padding:2px 6px;border:none;background:transparent;color:#fff;">▾</button></div>
 <div id="pb">
  <h1>Ruang Komunal Terangkat</h1>
  <p class="sub">Community Food Hall + Perpustakaan · Denpasar</p>
@@ -79,12 +148,13 @@ h1{font-size:16px;line-height:1.3;margin:0 0 4px;font-weight:700}
  <div id="legend">
   <span><i style="background:#94a3b8"></i>Beton</span><span><i style="background:#b45309"></i>Kayu</span>
   <span><i style="background:#22c55e"></i>Atap Hijau</span><span><i style="background:#ef4444"></i>Jogging Track</span>
-  <span><i style="background:#2563eb"></i>Jalur A</span><span><i style="background:#ea580c"></i>Jalur B</span>
-  <span><i style="background:#9333ea"></i>Overflow</span><span><i style="background:#475569"></i>Outlet</span>
+  <span><i style="background:#3b82f6"></i>Jalur A</span><span><i style="background:#f97316"></i>Jalur B</span>
+  <span><i style="background:#a855f7"></i>Overflow</span><span><i style="background:#64748b"></i>Outlet</span>
   <span><i style="background:#8b5cf6"></i>Sampah</span><span><i style="background:#334155"></i>Rockflow</span>
  </div>
 </div></div>
-<div id="hud" class="card">
+
+<div id="hud" class="card" style="opacity:0; pointer-events:none;">
  <div><span>Muka air</span><b id="hw">-3,20 m</b></div><div><span>BFE / DFE</span><b>+2,0 / +2,6 m</b></div>
  <div><span>Kapasitas</span><b id="ht">0%</b></div><div><span>Status</span><b id="hs">Standby</b></div>
 </div>
@@ -97,7 +167,44 @@ import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 
 const $=s=>document.querySelector(s),rnd=(a,b)=>a+Math.random()*(b-a),mv=(a,b,d)=>a+Math.max(-d,Math.min(d,b-a));
 const C={cream:0xcbd5e1,terra:0xb45309,moss:0x22c55e,sage:0x4ade80,wood:0xb45309,wood2:0x78350f,soil:0x451a03,brick:0xef4444,
- cPathA:0x2563eb, cPathB:0xea580c, cBee:0xd97706, cToilet:0x0ea5e9, cGarden:0x22c55e, cOver:0x9333ea, cCity:0x475569};
+ cPathA:0x3b82f6, cPathB:0xf97316, cBee:0xd97706, cToilet:0x0ea5e9, cGarden:0x22c55e, cOver:0xa855f7, cCity:0x475569};
+
+/* --- INTRO SLIDE LOGIC --- */
+let currentSlide = 0;
+const slides = document.querySelectorAll('.slide');
+const dots = document.querySelectorAll('.dot');
+const btnPrev = document.getElementById('btn-prev');
+const btnNext = document.getElementById('btn-next');
+
+window.changeSlide = function(dir) {
+    slides[currentSlide].classList.remove('active');
+    dots[currentSlide].classList.remove('active');
+    currentSlide += dir;
+    
+    if (currentSlide >= slides.length - 1) {
+        currentSlide = slides.length - 1;
+        document.getElementById('nav-container').style.display = 'none';
+    } else {
+        document.getElementById('nav-container').style.display = 'flex';
+    }
+    
+    if (currentSlide <= 0) { currentSlide = 0; btnPrev.style.display = 'none'; } 
+    else { btnPrev.style.display = 'block'; }
+    
+    if (currentSlide === slides.length - 1) btnNext.style.display = 'none';
+    else btnNext.style.display = 'block';
+
+    slides[currentSlide].classList.add('active');
+    dots[currentSlide].classList.add('active');
+}
+
+window.startSimulation = function() {
+    document.getElementById('intro-overlay').classList.add('hidden');
+    document.getElementById('panel').style.opacity = '1';
+    document.getElementById('panel').style.pointerEvents = 'auto';
+    document.getElementById('hud').style.opacity = '1';
+    document.getElementById('hud').style.pointerEvents = 'auto';
+}
 
 /* ---------- RENDERER & SCENE ---------- */
 const renderer=new THREE.WebGLRenderer({antialias:true, alpha:false});
@@ -107,12 +214,12 @@ renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.
 document.body.prepend(renderer.domElement);
 
 const scene=new THREE.Scene();
-scene.background = new THREE.Color(0xcbd5e1); 
-scene.fog=new THREE.Fog(0xcbd5e1,100,350);
+scene.background = new THREE.Color(0x0f172a); // Dark mode background
+scene.fog=new THREE.Fog(0x0f172a,100,350);
 
 const pm=new THREE.PMREMGenerator(renderer);
 scene.environment=pm.fromScene(new RoomEnvironment(),0.04).texture;
-scene.environmentIntensity=0.5;
+scene.environmentIntensity=0.4;
 
 const camera=new THREE.PerspectiveCamera(35,1,.1,900);
 camera.position.set(50,40,60);
@@ -124,11 +231,11 @@ controls.minPolarAngle = 0.1;
 controls.maxPolarAngle = Math.PI/2 - 0.05;
 
 /* ---------- LIGHTING ---------- */
-scene.add(new THREE.AmbientLight(0xffffff, 0.4));
-const hemiLight = new THREE.HemisphereLight(0x94a3b8, 0x1e293b, 0.8);
+scene.add(new THREE.AmbientLight(0xffffff, 0.2));
+const hemiLight = new THREE.HemisphereLight(0x94a3b8, 0x1e293b, 0.6);
 scene.add(hemiLight);
 
-const sun=new THREE.DirectionalLight(0xfff0dd, 2.0);
+const sun=new THREE.DirectionalLight(0xfff0dd, 2.5);
 sun.position.set(-40,80,50);sun.castShadow=true;
 sun.shadow.mapSize.set(2048,2048);
 Object.assign(sun.shadow.camera,{left:-60,right:60,top:60,bottom:-60,near:10,far:250});
@@ -259,7 +366,7 @@ const setHex=w=>{for(let i=0;i<72;i++)hex.setColorAt(i,hc.copy(hDry).lerp(hWet,w
 const filterUnit = M(new THREE.BoxGeometry(4, 2, 3), mat('filter', 0x1e293b, 1, {metalness:0.6, roughness:0.3}), 38, -4, -2, 'filter');
 M(new THREE.BoxGeometry(3.8, 1.8, 2.8), mat('filter', 0x3b82f6, 1, {roughness:0.1, metalness:0.5}), 38, -4, -2, 'filter');
 
-// Tanks (Solid Steel, PASTI TERLIHAT)
+// Tanks (Solid Steel)
 const tk=new THREE.Group();tk.position.set(38,-4.7,-7);scene.add(tk);
 const tankMetal = mat('tank',0x64748b,1,{metalness:0.8, roughness:0.2});
 const tankWater = [];
