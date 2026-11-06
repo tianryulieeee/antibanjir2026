@@ -42,7 +42,6 @@ h1{font-size:16px;line-height:1.3;margin:0 0 4px;font-weight:700}
 #hud b{font-weight:800;color:var(--text)}
 #hud span{color:#64748b;font-weight:600}
 
-/* FIXED POP-UP (Tengah Bawah) */
 #balloon{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);width:520px;max-width:90vw;padding:16px 24px;background:rgba(255,255,255,0.95);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:12px;box-shadow:0 20px 40px rgba(0,0,0,0.15);z-index:10;pointer-events:none;opacity:0;transition:opacity 0.5s;font-size:14px;line-height:1.6;color:var(--text);text-align:center}
 #balloon .t{display:block;margin-bottom:6px;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--accent);font-weight:800}
 
@@ -255,23 +254,25 @@ hex.castShadow=true;hex.userData.key='facade';pick.push(hex);scene.add(hex);
 const hDry=new THREE.Color(C.terra),hWet=new THREE.Color(0x451a03),hc=new THREE.Color();let lastWet=-1;
 const setHex=w=>{for(let i=0;i<72;i++)hex.setColorAt(i,hc.copy(hDry).lerp(hWet,w).multiplyScalar(hv[i]));hex.instanceColor.needsUpdate=true};
 
-/* ---------- MULTIPLE TANKS, FILTER, RETENTION POND ---------- */
+/* ---------- MULTIPLE TANKS, FILTER, RETENTION POND (SOLID) ---------- */
+// Filter
 const filterUnit = M(new THREE.BoxGeometry(4, 2, 3), mat('filter', 0x1e293b, 1, {metalness:0.6, roughness:0.3}), 38, -4, -2, 'filter');
-M(new THREE.BoxGeometry(3.8, 1.8, 2.8), mat('filter', 0x3b82f6, 0.8, {transparent:true, roughness:0.1, metalness:0.5}), 38, -4, -2, 'filter');
+M(new THREE.BoxGeometry(3.8, 1.8, 2.8), mat('filter', 0x3b82f6, 1, {roughness:0.1, metalness:0.5}), 38, -4, -2, 'filter');
 
+// Tanks (Solid Steel, PASTI TERLIHAT)
 const tk=new THREE.Group();tk.position.set(38,-4.7,-7);scene.add(tk);
-// Kaca tangki diperbaiki (selalu transparan, tidak bisa hilang total)
-const tankGlass = mat('tank',0x94a3b8,.4,{transparent:true, roughness:0.1, metalness:0.3});
+const tankMetal = mat('tank',0x64748b,1,{metalness:0.8, roughness:0.2});
 const tankWater = [];
 
-M(new THREE.CylinderGeometry(1.6,1.6,3,32),tankGlass,0,0,-4,'tankA',tk);
-const twA = new THREE.Mesh(new THREE.CylinderGeometry(1.4,1.4,1,32).translate(0,.5,0), mat('tankA',C.cPathA,0.9,{roughness:0.1,metalness:0.2,emissive:C.cPathA,emissiveIntensity:.2}));
+M(new THREE.CylinderGeometry(1.6,1.6,3,32),tankMetal,0,0,-4,'tankA',tk);
+const twA = new THREE.Mesh(new THREE.CylinderGeometry(1.5,1.5,1,32).translate(0,.5,0), mat('tankA',C.cPathA,0.9,{roughness:0.1,metalness:0.2,emissive:C.cPathA,emissiveIntensity:.2}));
 twA.position.set(0, -1.4, -4); tk.add(twA); tankWater.push({mesh:twA, val:0});
 
-M(new THREE.CylinderGeometry(1.6,1.6,3,32),tankGlass,0,0,0,'tankB',tk);
-const twB = new THREE.Mesh(new THREE.CylinderGeometry(1.4,1.4,1,32).translate(0,.5,0), mat('tankB',C.cPathB,0.9,{roughness:0.1,metalness:0.2,emissive:C.cPathB,emissiveIntensity:.2}));
+M(new THREE.CylinderGeometry(1.6,1.6,3,32),tankMetal,0,0,0,'tankB',tk);
+const twB = new THREE.Mesh(new THREE.CylinderGeometry(1.5,1.5,1,32).translate(0,.5,0), mat('tankB',C.cPathB,0.9,{roughness:0.1,metalness:0.2,emissive:C.cPathB,emissiveIntensity:.2}));
 twB.position.set(0, -1.4, 0); tk.add(twB); tankWater.push({mesh:twB, val:0});
 
+// Pond
 const pondMat = mat('pond', 0x3b82f6, 0.9, {transparent:true, roughness:0.1});
 const pondBase = M(new THREE.CylinderGeometry(5, 5, 0.5, 32), mat('pondBase', 0x1e293b, 1, {roughness:0.9}), 38, -4.5, 15, 'pond');
 const pondWater = M(new THREE.CylinderGeometry(4.9, 4.9, 0.4, 32), pondMat, 38, -4.4, 15, 'pond');
@@ -337,17 +338,7 @@ const mCrack=new THREE.MeshStandardMaterial({color:0x0f172a,transparent:true,opa
   tube.userData.key='deck_crack'; pick.push(tube); scene.add(tube);
 });
 
-// AIR BANJIR (JELAS & PASTI MUNCUL)
-const wMat = new THREE.MeshStandardMaterial({
-    color: 0x00aaff, 
-    emissive: 0x003366,
-    transparent: true,
-    opacity: 0.75,
-    roughness: 0.2,
-    metalness: 0.1,
-    depthWrite: false
-});
-
+const wMat = new THREE.MeshStandardMaterial({ color: 0x00aaff, emissive: 0x003366, transparent: true, opacity: 0.75, roughness: 0.2, metalness: 0.1, depthWrite: false });
 const wg=new THREE.PlaneGeometry(120,120,64,64);wg.rotateX(-Math.PI/2);const flood=new THREE.Mesh(wg,wMat);flood.visible=false;scene.add(flood);
 const wpos=wg.attributes.position,wbx=Float32Array.from(wpos.array.filter((_,i)=>i%3===0)),wbz=Float32Array.from(wpos.array.filter((_,i)=>i%3===2));
 const bw=[];for(let i=0;i<6;i++){const m=new THREE.Mesh(new THREE.CylinderGeometry(R(i)-.05,R(i)-.05,1,64).translate(0,.5,0),wMat);m.position.y=Y(i+1);m.visible=false;scene.add(m);bw.push(m)}
@@ -420,18 +411,18 @@ drain:{n:'Drainase',i:'💧',steps:[
   n:'Limpasan permukaan masuk melewati saringan sampah (trash rack). Sampah padat tertahan dan dipindahkan ke tempat pengeringan, sedangkan air mengalir ke amfiteater menuju Rockflow.'},
  {t:'Resapan Rockflow',f:['rock'],c:[25,20,25,0,-4,0],s:{w:-2.0,whirl:1,x:1,trash:1},
   n:'Air meresap ke lapisan Rockflow (batu berongga) sebagai buffer/infiltrasi. Sedimen halus mengendap di dasar Rockflow.'},
- {t:'Filtrasi & Tangki B',f:['pipe_pathB','filter','tankB','tankA'],c:[35,18,20,35,-4,-2],s:{w:-3.2,pMode:'pathB',tankB:60,x:1,trash:0},
+ {t:'Filtrasi & Tangki B',f:['pipe_pathB','filter','tankB','tankA'],c:[50,25,20,38,-4,0],s:{w:-3.2,pMode:'pathB',tankB:60,x:1,trash:0},
   n:'Amfiteater dikeringkan! Air dari Rockflow dipompa menuju unit Filtrasi Bertahap (pipa oranye). Setelah bersih, air disimpan ke dalam Tangki B.'},
- {t:'Overflow ke Retensi',f:['pipe_overflow','pond','tankB','tankA','filter'],c:[38,15,0,38,-2,10],s:{w:-3.2,pMode:'overflow',tankA:95,tankB:95,pond:1,x:1},
+ {t:'Overflow ke Retensi',f:['pipe_overflow','pond','tankB','tankA','filter'],c:[50,25,20,38,-4,10],s:{w:-3.2,pMode:'overflow',tankA:95,tankB:95,pond:1,x:1},
   n:'Jika Tangki A dan B menyisakan sedikit kapasitas (untuk hujan dadakan), pipa overflow (ungu) menyalurkan air berlebih ke Kolam Retensi.'},
- {t:'Pelepasan ke Kota',f:['pipe_city','pond'],c:[45,10,25,45,-4,25],s:{w:-3.2,pMode:'city',tankA:95,tankB:95,pond:.5,x:1},
+ {t:'Pelepasan ke Kota',f:['pipe_city','pond'],c:[55,20,30,45,-4,25],s:{w:-3.2,pMode:'city',tankA:95,tankB:95,pond:.5,x:1},
   n:'Dari Kolam Retensi, air dilepas secara perlahan (dikontrol) melalui pipa outlet menuju Drainase Kota. Genangan surut tanpa membebani saluran kota secara mendadak.'}]},
 rain:{n:'Panen Air Hujan',i:'🌧️',steps:[
  {t:'Hujan di Blue-Green Roof',f:['roof'],c:[45,30,30,20,5,-3],s:{w:-3,rain:1,tankA:15,tankB:20},
   n:'Hujan jatuh ke atap hijau (Blue-Green Roof). Vegetasi menahan air, memperlambat limpasan, dan memberikan pendinginan evaporatif alami pada bangunan.'},
- {t:'Filtrasi & Tangki A',f:['pipe_pathA','filter','tankA'],c:[40,20,20,20,-2,-5],s:{w:-3,rain:1,pMode:'pathA',tankA:40,tankB:20,x:1},
+ {t:'Filtrasi & Tangki A',f:['pipe_pathA','filter','tankA'],c:[50,25,20,38,-4,-4],s:{w:-3,rain:1,pMode:'pathA',tankA:40,tankB:20,x:1},
   n:'Air mengalir melalui talang, melewati First Flush Diverter, lalu menuju unit Filtrasi Bertahap (pipa biru) sebelum masuk ke Tangki A (Air Atap).'},
- {t:'Tangki Terisi',f:['tankA','pipe_pathA'],c:[45,15,10,38,-4.5,-4],s:{w:-3,rain:1,pMode:'pathA',tankA:85,tankB:20,x:1},
+ {t:'Tangki Terisi',f:['tankA','pipe_pathA'],c:[50,25,20,38,-4,-4],s:{w:-3,rain:1,pMode:'pathA',tankA:85,tankB:20,x:1},
   n:'Tangki A penampungan terisi. Air hujan disimpan untuk digunakan pada musim kemarau, mengurangi ketergantungan pada air PDAM.'},
  {t:'3 Cabang Distribusi',f:['pipe_bee','pipe_toilet','pipe_garden','tankA'],c:[45,30,20,20,-2,-5],s:{w:-3,pMode:'dist',tankA:80,tankB:20,x:1},
   n:'Dari Tangki A, air didistribusikan melalui 3 cabang pipa: Oranye (Fasad Beehive), Cyan (Flush Toilet), dan Hijau Muda (Penyiraman Taman).'}]},
@@ -560,13 +551,12 @@ renderer.setAnimationLoop(()=>{
  // LOGIKA PENDIMMINGAN (ANTI HILANG)
  for(const k in G){
    const g=G[k];
-   let targetOpacity = (!focus.size||focus.has(k)||KEEP.has(k)) ? 1 : 0.3; // Objek tidak fokus hanya diredupkan (30%), bukan dihilangkan
+   let targetOpacity = (!focus.size||focus.has(k)||KEEP.has(k)) ? 1 : 0.3; 
    if (T.pMode) {
      if (k.includes('pipe_') || k === 'tank' || k === 'rock' || k === 'filter' || k === 'pond' || k === 'tankA' || k === 'tankB') targetOpacity = 1;
-     else targetOpacity = 0.15; // Bangunan lain jadi transparan
+     else targetOpacity = 0.15; 
    }
    
-   // Khusus tangki & filter, jangan pernah diredupkan parah saat tahap filtrasi
    if (['drain','rain','cool'].includes(mode) && ['filter','tankA','tankB','pond'].includes(k)) {
        targetOpacity = 1;
    }
@@ -599,8 +589,6 @@ renderer.setAnimationLoop(()=>{
  }
 
  bw.forEach((m,i)=>{const f=Math.max(0,Math.min(1,(w-Y(i+1))/(3.2/6)));m.visible=f>.001;m.scale.y=Math.max(f*(3.2/6),.001)});
- 
- // Air Tampil jika level > -3.1
  flood.visible=w>-3.1; 
  if(flood.visible){
     flood.position.y=w;
