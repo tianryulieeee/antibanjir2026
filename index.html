@@ -70,7 +70,7 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;-webkit-fon
   position:fixed;inset:0;z-index:1;display:none;
   font-family:'Inter',sans-serif;color:#0f172a;
   -webkit-font-smoothing:antialiased;overflow:hidden;
-  background:transparent; /* Biarkan canvas 3D terlihat */
+  background:transparent;
 }
 #sim-container.active{display:block}
 
@@ -300,7 +300,6 @@ renderer.setPixelRatio(Math.min(devicePixelRatio,2));
 renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;
 
-// PERBAIKAN: Masukkan canvas ke dalam #sim-container dan letakkan di background (z-index 0)
 const simContainer = document.getElementById('sim-container');
 simContainer.insertBefore(renderer.domElement, simContainer.firstChild);
 renderer.domElement.style.position = 'absolute';
@@ -583,6 +582,7 @@ const LB=[['Blue-green roof',[20,9.4,-3]],['Food Hall',[-20,6,3]],['Perpustakaan
 const balloon = $('#balloon'), bTitle = $('#bt'), bContent = $('#bc');
 let balloonText = "", typedChars = 0;
 
+// PERBAIKAN FATAL: w diubah menjadi -3.2 (KERING) pada mode Panen Air Hujan & Cooling
 const D0={w:-3.2,rain:0,whirl:0,pMode:'',air:0,wet:0,tankA:20,tankB:20,mud:0,crack:0,heal:0,inflow:0,trash:0,pond:0},OV=[50,40,60,0,-1,0];
 const MODES={
 flood:{n:'Banjir',i:'🌊',steps:[
@@ -606,22 +606,22 @@ drain:{n:'Drainase',i:'💧',steps:[
  {t:'Pelepasan ke Kota',f:['pipe_city','pond'],c:[55,20,30,45,-4,25],s:{w:-3.2,pMode:'city',tankA:95,tankB:95,pond:.5,x:1},
   n:'Dari Kolam Retensi, air dilepas secara perlahan (dikontrol) melalui pipa outlet menuju Drainase Kota. Genangan surut tanpa membebani saluran kota secara mendadak.'}]},
 rain:{n:'Panen Air Hujan',i:'🌧️',steps:[
- {t:'Hujan di Blue-Green Roof',f:['roof'],c:[45,30,30,20,5,-3],s:{w:-3,rain:1,tankA:15,tankB:20},
+ {t:'Hujan di Blue-Green Roof',f:['roof'],c:[45,30,30,20,5,-3],s:{w:-3.2,rain:1,tankA:15,tankB:20}, // KERING
   n:'Hujan jatuh ke atap hijau (Blue-Green Roof). Vegetasi menahan air, memperlambat limpasan, dan memberikan pendinginan evaporatif alami pada bangunan.'},
- {t:'Filtrasi & Tangki A',f:['pipe_pathA','filter','tankA'],c:[50,25,20,38,-4,-4],s:{w:-3,rain:1,pMode:'pathA',tankA:40,tankB:20,x:1},
+ {t:'Filtrasi & Tangki A',f:['pipe_pathA','filter','tankA'],c:[50,25,20,38,-4,-4],s:{w:-3.2,rain:1,pMode:'pathA',tankA:40,tankB:20,x:1}, // KERING
   n:'Air mengalir melalui talang, melewati First Flush Diverter, lalu menuju unit Filtrasi Bertahap (pipa biru) sebelum masuk ke Tangki A (Air Atap).'},
- {t:'Tangki Terisi',f:['tankA','pipe_pathA'],c:[50,25,20,38,-4,-4],s:{w:-3,rain:1,pMode:'pathA',tankA:85,tankB:20,x:1},
+ {t:'Tangki Terisi',f:['tankA','pipe_pathA'],c:[50,25,20,38,-4,-4],s:{w:-3.2,rain:1,pMode:'pathA',tankA:85,tankB:20,x:1}, // KERING
   n:'Tangki A penampungan terisi. Air hujan disimpan untuk digunakan pada musim kemarau, mengurangi ketergantungan pada air PDAM.'},
- {t:'3 Cabang Distribusi',f:['pipe_bee','pipe_toilet','pipe_garden','tankA'],c:[45,30,20,20,-2,-5],s:{w:-3,pMode:'dist',tankA:80,tankB:20,x:1},
+ {t:'3 Cabang Distribusi',f:['pipe_bee','pipe_toilet','pipe_garden','tankA'],c:[45,30,20,20,-2,-5],s:{w:-3.2,pMode:'dist',tankA:80,tankB:20,x:1}, // KERING
   n:'Dari Tangki A, air didistribusikan melalui 3 cabang pipa: Oranye (Fasad Beehive), Cyan (Flush Toilet), dan Hijau Muda (Penyiraman Taman).'}]},
 cool:{n:'Beehive Cooling',i:'🐝',steps:[
- {t:'Aliran ke Fasad',f:['pipe_bee','facade','tankA'],c:[40,20,20,25,4,-5],s:{w:-3.2,pMode:'bee',tankA:75,x:1},
+ {t:'Aliran ke Fasad',f:['pipe_bee','facade','tankA'],c:[40,20,20,25,4,-5],s:{w:-3.2,pMode:'bee',tankA:75,x:1}, // KERING
   n:'Pipa Oranye menyalurkan air dari tangki menuju bagian atas Fasad Keramik. Bangunan transparan memperlihatkan aliran air naik ke lantai atas.'},
- {t:'Pembasahan Keramik',f:['facade','pipe_bee'],c:[45,15,15,25,4.5,0],s:{w:-3.2,pMode:'bee',wet:1,tankA:70,x:1},
+ {t:'Pembasahan Keramik',f:['facade','pipe_bee'],c:[45,15,15,25,4.5,0],s:{w:-3.2,pMode:'bee',wet:1,tankA:70,x:1}, // KERING
   n:'Air menetes membasahi panel keramik berpori (Hexagonal). Warna panel berubah menjadi lebih gelap saat basah. Air tertahan di pori-pori keramik.'},
- {t:'Penguapan & Pendinginan',f:['facade'],c:[38,10,10,25,4.5,0],s:{w:-3.2,air:1,wet:1,tankA:68,x:1},
+ {t:'Penguapan & Pendinginan',f:['facade'],c:[38,10,10,25,4.5,0],s:{w:-3.2,air:1,wet:1,tankA:68,x:1}, // KERING
   n:'Udara panas (merah) masuk melewati pori keramik yang basah. Terjadi penguapan yang menyerap kalor, mengubah udara menjadi sejuk (biru). Efek pendinginan pasif tanpa AC.'},
- {t:'Udara Sejuk ke Ruangan',f:['lib','facade'],c:[35,20,20,21,4,-1],s:{w:-3.2,air:1,wet:1,tankA:66},
+ {t:'Udara Sejuk ke Ruangan',f:['lib','facade'],c:[35,20,20,21,4,-1],s:{w:-3.2,air:1,wet:1,tankA:66}, // KERING
   n:'Udara sejuk dialirkan masuk ke dalam Perpustakaan. Kenyamanan termal tercapai dengan konsumsi energi yang sangat rendah.'}]},
 post:{n:'Pascabanjir',i:'🧹',steps:[
  {t:'Pengeringan Sampah & Sedimen',f:['dryingBed','trash'],c:[-25,15,-20,-25,0,-20],s:{w:-2.6,mud:1,tankA:50,trash:0},
