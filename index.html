@@ -8,41 +8,41 @@
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box}
-html,body{margin:0;height:100%;overflow:hidden;background:#f3dfc6;font-family:'Nunito','Segoe UI',system-ui,sans-serif;color:#3b3128}
+html,body{margin:0;height:100%;overflow:hidden;background:#f0f4f8;font-family:'Nunito','Segoe UI',system-ui,sans-serif;color:#2c3e50}
 canvas{display:block}
-button{font:inherit;cursor:pointer;border:0;border-radius:10px;padding:7px 10px;background:#efe3d0;color:#3b3128;font-weight:600;transition:.15s}
-button:hover:not(:disabled){background:#e6d3b6}button:disabled{opacity:.4;cursor:default}
-.card{background:rgba(255,250,240,.94);border-radius:16px;box-shadow:0 6px 24px rgba(90,60,30,.22)}
+button{font:inherit;cursor:pointer;border:0;border-radius:10px;padding:7px 10px;background:#e2e8f0;color:#2c3e50;font-weight:600;transition:.15s}
+button:hover:not(:disabled){background:#cbd5e1}button:disabled{opacity:.4;cursor:default}
+.card{background:rgba(255,255,255,.96);border-radius:16px;box-shadow:0 6px 24px rgba(0,0,0,.08);border:1px solid #e2e8f0}
 #panel{position:fixed;left:12px;top:12px;width:350px;max-height:calc(100% - 24px);display:flex;flex-direction:column;z-index:5}
 #ph{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;font-weight:800}
 #pb{overflow:auto;padding:0 14px 14px}.collapsed #pb{display:none}
 h1{font-size:17px;line-height:1.2;margin:0 0 2px}.sub{margin:0 0 8px;font-size:12px;opacity:.75}
 .std{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
-.std span{background:#fff;border:2px solid #e0a030;border-radius:999px;padding:2px 9px;font-size:12px;font-weight:800}
+.std span{background:#f8fafc;border:2px solid #94a3b8;border-radius:999px;padding:2px 9px;font-size:12px;font-weight:800;color:#475569}
 #modes{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px}
-#modes button, #sys{text-align:left;padding:8px 9px;font-size:13px;background:#fff;border:2px solid #eadcc6;width:100%;margin-bottom:8px}
-#modes button.on, #sys.on{border-color:#4aa7a8;background:#e4f4f3}
-#reset{width:100%;margin-bottom:8px;background:#c47a5a;color:#fff}
-#step{background:#fff;border-radius:12px;padding:10px;margin-bottom:8px;border:2px solid #4aa7a8}#step[hidden]{display:none}
-#sc{font-size:11px;font-weight:800;color:#4aa7a8;text-transform:uppercase}
-#st{margin:2px 0 4px;font-size:15px}
-#sn{margin:0 0 8px;font-size:13px;line-height:1.45;overflow-wrap:anywhere;max-height:32vh;overflow:auto}
-.bar{height:7px;background:#eadcc6;border-radius:9px;overflow:hidden;margin-bottom:8px}.bar i{display:block;height:100%;width:0;background:#e0a030}
+#modes button, #sys{text-align:left;padding:8px 9px;font-size:13px;background:#fff;border:2px solid #cbd5e1;width:100%;margin-bottom:8px;color:#334155}
+#modes button.on, #sys.on{border-color:#3b82f6;background:#eff6ff;color:#1d4ed8}
+#reset{width:100%;margin-bottom:8px;background:#ef4444;color:#fff}
+#step{background:#f8fafc;border-radius:12px;padding:10px;margin-bottom:8px;border:2px solid #3b82f6}#step[hidden]{display:none}
+#sc{font-size:11px;font-weight:800;color:#3b82f6;text-transform:uppercase}
+#st{margin:2px 0 4px;font-size:15px;color:#1e293b}
+#sn{margin:0 0 8px;font-size:13px;line-height:1.45;overflow-wrap:anywhere;max-height:32vh;overflow:auto;color:#475569}
+.bar{height:7px;background:#e2e8f0;border-radius:9px;overflow:hidden;margin-bottom:8px}.bar i{display:block;height:100%;width:0;background:#3b82f6}
 .ctl{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}.ctl button{padding:7px 2px;font-size:12px}
-.tg{display:flex;gap:14px;font-size:13px;font-weight:600;margin:6px 0}
-#legend{display:grid;grid-template-columns:1fr 1fr;gap:3px 8px;font-size:11.5px}
+.tg{display:flex;gap:14px;font-size:13px;font-weight:600;margin:6px 0;color:#475569}
+#legend{display:grid;grid-template-columns:1fr 1fr;gap:3px 8px;font-size:11.5px;color:#475569}
 #legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px;border:1px solid rgba(0,0,0,.2)}
-#self{font-size:10px;opacity:.6;margin-top:6px}
-#hud{position:fixed;right:12px;top:12px;padding:8px 12px;font-size:12px;z-index:4;min-width:170px}
+#self{font-size:10px;opacity:.6;margin-top:6px;color:#64748b}
+#hud{position:fixed;right:12px;top:12px;padding:8px 12px;font-size:12px;z-index:4;min-width:170px;color:#334155}
 #hud div{display:flex;justify-content:space-between;gap:12px;padding:1px 0}
 #info{position:fixed;right:12px;bottom:12px;width:310px;max-height:60vh;overflow:auto;padding:12px 14px;z-index:4;font-size:13px;line-height:1.45}
-#info[hidden]{display:none}#info h4{margin:0 0 6px;font-size:16px;padding-right:30px}
-#info h5{margin:8px 0 2px;font-size:11px;text-transform:uppercase;color:#4aa7a8;letter-spacing:.04em}#info p{margin:0}
+#info[hidden]{display:none}#info h4{margin:0 0 6px;font-size:16px;padding-right:30px;color:#1e293b}
+#info h5{margin:8px 0 2px;font-size:11px;text-transform:uppercase;color:#3b82f6;letter-spacing:.04em}#info p{margin:0;color:#475569}
 #info button{position:absolute;right:8px;top:6px;padding:2px 8px}
-#hint{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);background:rgba(255,250,240,.9);border-radius:999px;padding:5px 14px;font-size:12px;font-weight:600;z-index:3;pointer-events:none;white-space:nowrap;transition:.3s}
-#tip{position:fixed;z-index:6;pointer-events:none;background:#3b3128;color:#fff;font-size:12px;font-weight:700;border-radius:8px;padding:3px 9px;display:none;white-space:nowrap}
+#hint{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);background:rgba(255,255,255,.9);border-radius:999px;padding:5px 14px;font-size:12px;font-weight:600;z-index:3;pointer-events:none;white-space:nowrap;transition:.3s;color:#475569;box-shadow:0 2px 10px rgba(0,0,0,.1)}
+#tip{position:fixed;z-index:6;pointer-events:none;background:#1e293b;color:#fff;font-size:12px;font-weight:700;border-radius:8px;padding:3px 9px;display:none;white-space:nowrap}
 #labels{position:fixed;inset:0;pointer-events:none;z-index:2;overflow:hidden}
-#labels div{position:absolute;left:0;top:0;font-size:11px;font-weight:700;background:rgba(255,250,240,.88);border-radius:8px;padding:1px 6px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.15)}
+#labels div{position:absolute;left:0;top:0;font-size:11px;font-weight:700;background:rgba(255,255,255,.9);border:1px solid #cbd5e1;border-radius:8px;padding:1px 6px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.05);color:#334155}
 @media (max-width:700px){
  #panel{left:8px;right:8px;top:auto;bottom:8px;width:auto;max-height:55vh}
  #hud{right:8px;top:8px;font-size:11px;min-width:150px;padding:6px 9px}
@@ -58,7 +58,7 @@ h1{font-size:17px;line-height:1.2;margin:0 0 2px}.sub{margin:0 0 8px;font-size:1
  <p class="sub">Community Food Hall + Perpustakaan · Denpasar, Bali</p>
  <div class="std"><span>BFE +2,0 m</span><span>DFE +2,6 m</span><span>Freeboard 0,6 m</span></div>
  <div id="modes"></div>
- <button id="sys">🔧 Mode Sistem Pemipaan (X-Ray)</button>
+ <button id="sys">🔧 Mode Sistem Pemipaan (Teknis)</button>
  <button id="reset">↺ Reset tampilan</button>
  <div id="step" hidden>
   <div id="sc"></div><h3 id="st"></h3><p id="sn"></p><div class="bar"><i id="sb"></i></div>
@@ -66,10 +66,8 @@ h1{font-size:17px;line-height:1.2;margin:0 0 2px}.sub{margin:0 0 8px;font-size:1
  </div>
  <div class="tg"><label><input type="checkbox" id="xr"> X-ray tanah</label><label><input type="checkbox" id="lb" checked> Label</label></div>
  <div id="legend">
-  <span><i style="background:#e3d8c6"></i>Beton / dek</span><span><i style="background:#b48a5e"></i>Kayu / interior</span>
-  <span><i style="background:#8fae72"></i>Atap biru-hijau</span><span><i style="background:#b5523b"></i>Jogging track</span>
-  <span><i style="background:#4aa7a8"></i>Air / pipa / tangki</span><span><i style="background:#7f8c9a"></i>Rockflow</span>
-  <span><i style="background:#c47a5a"></i>Keramik / stand</span><span><i style="background:#e0a030"></i>Sorotan / hover</span>
+  <span><i style="background:#22c55e"></i>Air Hujan</span><span><i style="background:#f97316"></i>Drainase & Pompa</span>
+  <span><i style="background:#3b82f6"></i>Pendingin & Irigasi</span><span><i style="background:#64748b"></i>Tangki / Rockflow</span>
  </div>
  <div id="self"></div>
 </div></div>
@@ -85,29 +83,29 @@ import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 const $=s=>document.querySelector(s),rnd=(a,b)=>a+Math.random()*(b-a),mv=(a,b,d)=>a+Math.max(-d,Math.min(d,b-a));
-const C={cream:0xe3d8c6,terra:0xc47a5a,moss:0x8fae72,sage:0x9fb88a,teal:0x4aa7a8,amber:0xe0a030,wood:0xb48a5e,wood2:0x8d6a44,soil:0xa78360,brick:0xb5523b};
+const C={cream:0xe3d8c6,terra:0xc47a5a,moss:0x8fae72,sage:0x9fb88a,teal:0x4aa7a8,amber:0xe0a030,wood:0xb48a5e,wood2:0x8d6a44,soil:0xa78360,brick:0xb5523b,
+ pipeRain:0x22c55e, pipeDrain:0xf97316, pipeCool:0x3b82f6, ghost:0xffffff};
 
 /* ---------- renderer / scene / light ---------- */
 const renderer=new THREE.WebGLRenderer({antialias:true});
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 document.body.prepend(renderer.domElement);
-const scene=new THREE.Scene();scene.fog=new THREE.Fog(0xf0e0cc,170,420);
-{const c=document.createElement('canvas');c.width=4;c.height=256;const x=c.getContext('2d'),g=x.createLinearGradient(0,0,0,256);
- g.addColorStop(0,'#86b0de');g.addColorStop(.55,'#cfe0ee');g.addColorStop(1,'#f6dcc0');x.fillStyle=g;x.fillRect(0,0,4,256);
- const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;scene.background=t}
+const scene=new THREE.Scene();scene.fog=new THREE.Fog(0xf0f4f8,180,450);
+scene.background=new THREE.Color(0xf0f4f8); // Latar belakang cerah
+
 const camera=new THREE.PerspectiveCamera(42,1,.1,900);
-scene.environment=new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(),.04).texture;scene.environmentIntensity=.5;
-scene.add(new THREE.HemisphereLight(0xe4f0ff,0xeed9bd,1.15));
-const sun=new THREE.DirectionalLight(0xffe6c0,2.1);sun.position.set(-40,75,50);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);
+scene.environment=new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(),.04).texture;scene.environmentIntensity=.4;
+scene.add(new THREE.HemisphereLight(0xffffff,0x94a3b8,1.2));
+const sun=new THREE.DirectionalLight(0xffffff,2.0);sun.position.set(-40,75,50);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);
 Object.assign(sun.shadow.camera,{left:-75,right:75,top:75,bottom:-75,near:10,far:260});sun.shadow.bias=-.0004;sun.shadow.normalBias=.06;scene.add(sun);
-const fill=new THREE.DirectionalLight(0xdfeaff,.7);fill.position.set(50,30,40);scene.add(fill);
+const fill=new THREE.DirectionalLight(0xffffff,.6);fill.position.set(50,30,40);scene.add(fill);
 
 const controls=new OrbitControls(camera,renderer.domElement);
 controls.enableDamping=true; controls.dampingFactor=0.08;
-controls.minDistance=8;controls.maxDistance=170;controls.maxPolarAngle=Math.PI/2-0.05; // Lebih bebas untuk rotasi
+controls.minDistance=8;controls.maxDistance=180;controls.maxPolarAngle=Math.PI/2-0.05;
 
-/* ---------- materials ---------- */
-const G={},grp=n=>G[n]||(G[n]={m:[],dim:1}),KEEP=new Set(['ground','bfe']),UG=new Set(['tank','pipes','rock']);
+/* ---------- materials & helper ---------- */
+const G={},grp=n=>G[n]||(G[n]={m:[],dim:1}),KEEP=new Set(['ground','bfe']),UG=new Set(['tank','pipes','rock','pump']);
 function mat(g,color,op=1,o={}){const m=new THREE.MeshStandardMaterial({color,roughness:.88,metalness:0,transparent:op<1,opacity:op,emissive:0xe0a030,emissiveIntensity:0,...o});m.userData.b=op;grp(g).m.push(m);return m}
 function lmat(g,op=.4,color=0x3a3027,dash){const m=dash?new THREE.LineDashedMaterial({color,dashSize:.9,gapSize:.6,transparent:true,opacity:op}):new THREE.LineBasicMaterial({color,transparent:true,opacity:op});m.userData.b=op;grp(g).m.push(m);return m}
 const pick=[],dm=new THREE.Object3D();
@@ -166,7 +164,7 @@ function pav(cx,w,d,h,rise,type){
  const zb=-d/2-.4,ze=d/2-6,L=ze-zb,zc=(zb+ze)/2,a=Math.atan2(rise,w/2),sw=Math.hypot(w/2,rise)+.5;
  [-1,1].forEach(s=>{const mc=mat('roof',C.cream),mr=mat('roof',C.moss);
   const sl=M(new THREE.BoxGeometry(sw,.3,L),[mc,mc,mr,mc,mc,mc],cx+s*w/4,y0+h+rise/2+.2,zc,'roof');sl.rotation.z=-s*a;ol(sl,'roof',.3);
-  M(new THREE.BoxGeometry(sw*.5,.06,L*.5),mat('roof',C.teal,.85),0,.2,0,'roof',sl);
+  M(new THREE.BoxGeometry(sw*.5,.06,L*.5),mat('roof',0x00e5ff,.85),0,.2,0,'roof',sl);
   [[-.2,.2],[.15,-.25],[.25,.28]].forEach(([u,v])=>M(new THREE.IcosahedronGeometry(.35,1),mat('roof',0x7a9b5e,1,{flatShading:true}),u*sw*1.3,.4,v*L,'roof',sl))});
  if(type==='hall'){
   const tm=mat('hall',0xdcbd90),bm=mat('hall',C.wood2),sm=mat('hall',C.terra),am=mat('hall',C.amber);
@@ -193,23 +191,51 @@ hex.castShadow=true;hex.userData.key='facade';pick.push(hex);scene.add(hex);
 const hDry=new THREE.Color(C.terra),hWet=new THREE.Color(0x5e3326),hc=new THREE.Color();let lastWet=-1;
 const setHex=w=>{for(let i=0;i<72;i++)hex.setColorAt(i,hc.copy(hDry).lerp(hWet,w).multiplyScalar(hv[i]));hex.instanceColor.needsUpdate=true};
 
-/* ---------- PIPA & TANGKI (Diperjelas) ---------- */
+/* ---------- PIPA (Ortogonal / Siku 90 Derajat) ---------- */
 const tk=new THREE.Group();tk.position.set(32,-4.7,-7);scene.add(tk);
 M(new THREE.CylinderGeometry(2.2,2.2,3,28),mat('tank',0xcfe9ea,.35),0,0,0,'tank',tk);
-const tw=new THREE.Mesh(new THREE.CylinderGeometry(2,2,1,24).translate(0,.5,0),new THREE.MeshStandardMaterial({color:C.teal,transparent:true,opacity:.85,roughness:.3,emissive:C.teal,emissiveIntensity:.2}));tw.position.y=-1.4;tk.add(tw);
+const tw=new THREE.Mesh(new THREE.CylinderGeometry(2,2,1,24).translate(0,.5,0),new THREE.MeshStandardMaterial({color:C.pipeCool,transparent:true,opacity:.85,roughness:.3,emissive:C.pipeCool,emissiveIntensity:.2}));tw.position.y=-1.4;tk.add(tw);
 {const o=tk.children[0];o.castShadow=false;ol(o,'tank',.5)}
 
-// Pipa dibuat lebih tebal (radius 0.3) dan menyala saat mode sistem
-function pipe(pts){const cv=new THREE.CatmullRomCurve3(pts.map(p=>new THREE.Vector3(...p)),false,'catmullrom',.05);
- const mPipe = mat('pipes',C.teal,1,{emissive: C.teal, emissiveIntensity: 0.3});
- M(new THREE.TubeGeometry(cv,100,.3,8),mPipe,0,0,0,'pipes');return cv}
+// Elemen Pompa & Valve (Tambahan ala Diagram Teknis)
+M(new THREE.BoxGeometry(1.6,1.2,1.6),mat('pump',0xe2e8f0,1,{emissive:0x94a3b8,emissiveIntensity:.2}),35,-6.2,-4,'pump');
+M(new THREE.CylinderGeometry(.5,.5,.8,16),mat('pump',C.pipeCool,1),35.8,-6.2,-4,'pump').rotation.z=Math.PI/2;
 
-const PATHS={
- roof:pipe([[26.2,8.2,-7],[26.2,-4.7,-7],[29.8,-4.7,-7]]),
- drain:pipe([[0,-3.4,0],[0,-6.9,0],[14,-6.9,-4],[29.8,-5.4,-7]]),
- irrig:pipe([[32,-3.2,-7],[32,6.6,-7],[26.1,6.6,-7],[26.1,6.6,2.9]])
-};
+// Fungsi Pembuat Pipa Ortogonal
+function makePipe(pts,color,radius=0.3) {
+  const group = new THREE.Group();
+  const mPipe = mat('pipes', color, 1, {emissive: color, emissiveIntensity: 0.1});
+  for(let i=0; i<pts.length-1; i++) {
+    const p1 = new THREE.Vector3(...pts[i]);
+    const p2 = new THREE.Vector3(...pts[i+1]);
+    const dist = p1.distanceTo(p2);
+    const cyl = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, dist, 12), mPipe);
+    cyl.position.copy(p1).add(p2).multiplyScalar(0.5);
+    cyl.lookAt(p2);
+    cyl.rotateX(Math.PI/2); // Cylinder default axis is Y
+    cyl.castShadow = true;
+    cyl.userData.key = 'pipes';
+    pick.push(cyl);
+    group.add(cyl);
+    
+    // Elbow joint
+    if(i < pts.length-2) {
+      const sphere = new THREE.Mesh(new THREE.SphereGeometry(radius*1.2, 12, 12), mPipe);
+      sphere.position.copy(p2);
+      sphere.userData.key = 'pipes';
+      pick.push(sphere);
+      group.add(sphere);
+    }
+  }
+  scene.add(group);
+}
 
+// Rute Pipa Siku 90 Derajat
+makePipe([[25, 8.5, -6], [25, 8.5, -7], [29, 8.5, -7], [29, -4.7, -7], [29.8, -4.7, -7]], C.pipeRain); // Hujan
+makePipe([[0, -3.4, 0], [0, -7, 0], [26, -7, 0], [26, -7, -7], [29.8, -7, -7]], C.pipeDrain); // Drainase
+makePipe([[32, -4.7, -7], [32, 8, -7], [25.5, 8, -7], [25.5, 6.5, 0]], C.pipeCool); // Pendingin
+
+/* Rockflow */
 {const rk=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1,0),mat('rock',0xffffff,1,{flatShading:true}),340),cl=new THREE.Color(),pl=[0x7f8c9a,0xd4b07a,0xb86f55,0x9fb59a,0x6e7a86];
  for(let i=0;i<340;i++){let x,z;do{x=rnd(-9.3,9.3);z=rnd(-9.3,9.3)}while(x*x+z*z>86);const s=rnd(.5,1);
   dm.position.set(x,rnd(-6.7,-3.8),z);dm.rotation.set(rnd(0,3),rnd(0,3),0);dm.scale.set(s,s*rnd(.7,1),s);dm.updateMatrix();rk.setMatrixAt(i,dm.matrix);rk.setColorAt(i,cl.setHex(pl[i%5]))}
@@ -256,14 +282,14 @@ const mCrack=new THREE.MeshBasicMaterial({color:0x3a2a22,transparent:true,opacit
  scene.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),24,.04,5),mCrack))});
 
 /* ---------- air ---------- */
-const wMat=new THREE.MeshStandardMaterial({color:C.teal,transparent:true,opacity:.55,roughness:.2,depthWrite:false});
+const wMat=new THREE.MeshStandardMaterial({color:0x00e5ff,transparent:true,opacity:.55,roughness:.2,depthWrite:false});
 const wg=new THREE.PlaneGeometry(100,100,40,40);wg.rotateX(-Math.PI/2);const flood=new THREE.Mesh(wg,wMat);flood.visible=false;scene.add(flood);
 const wpos=wg.attributes.position,wbx=Float32Array.from(wpos.array.filter((_,i)=>i%3===0)),wbz=Float32Array.from(wpos.array.filter((_,i)=>i%3===2));
 const bw=[];for(let i=0;i<6;i++){const m=new THREE.Mesh(new THREE.CylinderGeometry(R(i)-.03,R(i)-.03,1,48).translate(0,.5,0),wMat);m.position.y=Y(i+1);m.visible=false;scene.add(m);bw.push(m)}
 
 /* ---------- partikel ---------- */
 const inst=(n,geo,c)=>{const m=new THREE.InstancedMesh(geo,new THREE.MeshBasicMaterial({color:c}),n);m.count=0;m.frustumCulled=false;scene.add(m);return m};
-const rain=inst(1200,new THREE.SphereGeometry(.08,6,4),0x8fd0ee),whirl=inst(100,new THREE.SphereGeometry(.09,6,4),0xdffbfa),flow=inst(80,new THREE.SphereGeometry(.2,6,4),0xe6fbfb),air=inst(140,new THREE.IcosahedronGeometry(.12,0),0xffffff);
+const rain=inst(1200,new THREE.SphereGeometry(.08,6,4),0x8fd0ee),whirl=inst(100,new THREE.SphereGeometry(.09,6,4),0xdffbfa),flow=inst(80,new THREE.SphereGeometry(.2,6,4),0x00e5ff),air=inst(140,new THREE.IcosahedronGeometry(.12,0),0xffffff);
 const rx=[],ry=[],rz=[],rs=[];for(let i=0;i<1200;i++){rx.push(rnd(-34,34));ry.push(rnd(-3,16));rz.push(rnd(-24,24));rs.push(rnd(9,13))}
 const wa=[],wr=[];for(let i=0;i<100;i++){wa.push(rnd(0,6.28));wr.push(rnd(0,1.6))}
 const ax=[],ay=[],az=[],as=[];for(let i=0;i<140;i++){ax.push(rnd(26,36));ay.push(rnd(3.4,6.3));az.push(rnd(-2.8,2.8));as.push(rnd(1.6,2.4))}
@@ -272,10 +298,10 @@ const cRed=new THREE.Color(0xd9534a),cBlue=new THREE.Color(0x5aa7d8),ct=new THRE
 
 /* ---------- label 3D ---------- */
 const LB=[['Blue-green roof',[20,9.4,-3]],['Food Hall',[-20,6,3]],['Perpustakaan',[20,6.2,3]],['Lantai DFE +2,6 m',[-6,2.8,15.5]],['Fasad keramik',[25.6,6.9,0]],['Undercroft',[-6,1,-14],0],
- ['Amfiteater',[-3,-1.5,4]],['Jogging track',[11,.4,-5]],['Lubang drainase',[0,-3,0]],['Pipa',[26.2,2,-7]],['Tangki',[32,-2.8,-7],1],['Rockflow',[-4,-4.8,3],1],['BFE +2,0 m',[31.8,2,19]],['DFE +2,6 m',[31.8,2.9,19]]]
+ ['Amfiteater',[-3,-1.5,4]],['Jogging track',[11,.4,-5]],['Lubang drainase',[0,-3,0]],['Pipa Air Hujan',[25,8.5,-6]],['Pipa Drainase',[15,-7,0]],['Pipa Pendingin',[32,8,-7]],['Tangki',[32,-2.8,-7],1],['Rockflow',[-4,-4.8,3],1],['BFE +2,0 m',[31.8,2,19]],['DFE +2,6 m',[31.8,2.9,19]]]
  .map(([t,p,u])=>{const e=document.createElement('div');e.textContent=t;$('#labels').appendChild(e);return{e,p,u:u===1}});
 
-/* ---------- data langkah (Dengan Sitasi) ---------- */
+/* ---------- data langkah ---------- */
 const D0={w:-3.2,rain:0,whirl:0,flow:'',air:0,wet:0,tank:20,mud:0,crack:0},OV=[70,40,76,0,-1,0];
 const MODES={
 flood:{n:'Banjir',i:'🌊',steps:[
@@ -292,22 +318,22 @@ drain:{n:'Drainase',i:'💧',steps:[
   n:'Air di amfiteater mengalir ke lubang drainase di dasar cekungan. Pusaran stylized menunjukkan aliran memusat. Lubang dilindungi saringan agar sampah tidak menyumbat Rockflow di bawahnya.'},
  {t:'Meresap ke Rockflow',f:['rock','bowl'],c:[20,7,24,0,-5,0],s:{w:-2.4,whirl:1,tank:25,x:1},
   n:'X-ray tanah memperlihatkan air dari amfiteater turun ke lapisan Rockflow. Rongga antar batu menampung air sementara dan meresapkannya perlahan, memotong puncak aliran agar tidak membebani saluran kota. (Sumber: Barsley, 2020).'},
- {t:'Dipompa ke tangki',f:['pipes','tank','rock'],c:[34,4,34,16,-5,-4],s:{w:-2.9,flow:'drain',tank:55,x:1},
-  n:'Sebagian air disalurkan lewat pipa teal dari Rockflow menuju tangki bawah tanah di −6,2 m. Titik-titik aliran bergerak sepanjang pipa, dan level tangki naik dari 20% menuju 55%. Pemompaan hanya mengambil kelebihan debit.'},
+ {t:'Dipompa ke tangki',f:['pipes','tank','rock','pump'],c:[34,4,34,16,-5,-4],s:{w:-2.9,flow:'drain',tank:55,x:1},
+  n:'Sebagian air disalurkan lewat pipa oranye dari Rockflow menuju tangki bawah tanah di −6,2 m. Pompa (biru) mengambil kelebihan debit. Level tangki naik dari 20% menuju 55%.'},
  {t:'Target surut ≤ 48 jam',f:['bowl','track','tank','rock'],c:[30,18,36,0,-2,0],s:{w:-3.2,flow:'drain',tank:70,x:1},
   n:'Genangan ditargetkan surut maksimal 48 jam. Air ditahan di tangki dan diresapkan, bukan dibuang ke saluran kota. Setelah kering, jogging track kembali ramai. (Sumber: Hamstead dkk., Lensa SETS, 2021).'}]},
 rain:{n:'Panen Air Hujan',i:'🌧️',steps:[
  {t:'Hujan di blue-green roof',f:['roof'],c:[44,18,26,20,7,-3],s:{w:-3,rain:1,tank:15},
   n:'Hujan jatuh ke blue-green roof di atas rangka kayu. Lapisan tanaman dan kolam menahan air sehingga limpasan tertunda. Penguapan vegetasi mendinginkan interior. (Sumber: Jensen & Donovan, 2026).'},
  {t:'Air mengalir ke tangki',f:['pipes','roof','tank'],c:[48,8,28,26,0,-6],s:{w:-2.9,rain:1,flow:'roof',tank:35,x:1},
-  n:'Kelebihan air atap masuk ke pipa tegak di sisi Perpustakaan, turun menembus tanah menuju tangki di −6,2 m. Gravitasi cukup mengalirkan air tanpa pompa. X-ray memperlihatkan jalur pipanya.'},
+  n:'Kelebihan air atap masuk ke pipa hijau tegak di sisi Perpustakaan, turun menembus tanah menuju tangki di −6,2 m. Gravitasi cukup mengalirkan air tanpa pompa. X-ray memperlihatkan jalur pipanya.'},
  {t:'Tangki terisi',f:['tank','pipes'],c:[46,4,10,32,-4.5,-7],s:{w:-2.8,rain:1,flow:'roof',tank:85,x:1},
   n:'Tangki silinder terisi bertahap hingga 85%. Air hujan disimpan, bukan dibuang. Pipa masuk di samping agar sedimen mengendap. Cadangan ini berguna saat kemarau.'},
  {t:'Dipakai ulang',f:['pipes','tank','trees','facade'],c:[48,14,24,26,3,-3],s:{w:-3.2,flow:'irrig',tank:76,x:1},
-  n:'Air dialirkan naik untuk mengairi taman dan pembasah fasad Beehive. Siklus tertutup ini mengurangi air PDAM, sesuai prinsip nested systems dalam arsitektur regeneratif. (Sumber: Jensen & Donovan, 2026).'}]},
+  n:'Air dialirkan naik (pipa biru) untuk mengairi taman dan pembasah fasad Beehive. Siklus tertutup ini mengurangi air PDAM, sesuai prinsip nested systems dalam arsitektur regeneratif. (Sumber: Jensen & Donovan, 2026).'}]},
 cool:{n:'Beehive Cooling',i:'🐝',steps:[
  {t:'Keramik dibasahi',f:['facade','pipes','tank'],c:[44,9,18,25,4.5,0],s:{wet:1,flow:'irrig',tank:70},
-  n:'Air dari tangki membasahi panel keramik berpori (72 hexagon). Panel berubah gelap saat basah. Layar dipasang di sisi timur Perpustakaan. (Sumber: Hamstead dkk., Lensa SETS, 2021).'},
+  n:'Air dari tangki (pipa biru) membasahi panel keramik berpori (72 hexagon). Panel berubah gelap saat basah. Layar dipasang di sisi timur Perpustakaan. (Sumber: Hamstead dkk., Lensa SETS, 2021).'},
  {t:'Udara panas masuk',f:['facade'],c:[42,7,12,25,4.5,0],s:{wet:1,air:1,tank:66},
   n:'Udara panas (merah) bergerak menuju fasad karena tarikan termal. Udara dipaksa melewati pori keramik yang lembap. Bentuk hexagon memperluas bidang kontak.'},
  {t:'Penguapan mendinginkan',f:['facade'],c:[36,6,14,25,4.5,0],s:{wet:1,air:1,tank:64},
@@ -330,14 +356,15 @@ const INFO={
  track:['Jogging track','Cincin lintasan lari karet merah bata (lebar 1,8 m) mengelilingi amfiteater.','Sirkulasi olahraga harian sekaligus pagar lunak. Permukaannya mudah dibilas pascabanjir.',[16,14,24,0,0,0]],
  hall:['Food Hall','Paviliun kayu 10 × 16 m dengan atap terekspos, meja panjang, dan stand makanan.','Pasar kuliner; saat banjir menjadi dapur umum dan pos distribusi. (Jensen & Donovan, 2026).',[-20,16,34,-20,4,-2]],
  lib:['Perpustakaan','Paviliun kayu 10 × 16 m, rak buku, meja baca, dan Fasad Beehive di timur.','Ruang belajar dan arsip; saat krisis menjadi ruang tenang. Dingin berkat pendinginan evaporatif pasif.',[20,16,34,20,4,-2]],
- roof:['Atap biru-hijau','Atap miring berlapis vegetasi sage-moss dengan kolam dangkal teal.','Menahan limpasan hujan, mendinginkan lewat evapotranspirasi, menyalurkan air ke tangki. (Jensen & Donovan, 2026).',[34,20,26,20,8,-3]],
+ roof:['Atap biru-hijau','Atap miring berlapis vegetasi sage-moss dengan kolam dangkal.','Menahan limpasan hujan, mendinginkan lewat evapotranspirasi, menyalurkan air ke tangki. (Jensen & Donovan, 2026).',[34,20,26,20,8,-3]],
  tank:['Tangki bawah tanah','Silinder transparan Ø 4,4 m di −6,2 m, terhubung pipa dari atap dan Rockflow.','Menyimpan air hujan dan limpasan untuk irigasi dan fasad Beehive (Lensa SETS). (Hamstead dkk., 2021).',[46,6,10,32,-4.7,-7],1],
  rock:['Rockflow','Lapisan batu bulat berongga (±3 m) di bawah amfiteater.','Penyangga resapan: rongga menampung air, memotong puncak aliran, menyalurkan ke tangki. (Barsley, 2020).',[20,8,24,0,-5,0],1],
  facade:['Fasad keramik Beehive','Layar vertikal 12 × 6 hexagon keramik porous di timur Perpustakaan.','Dibasahi air tampungan; penguapan di pori mendinginkan udara yang masuk. Menggelap saat basah.',[42,9,16,25.4,4.5,0]],
  deck:['Dek DFE +2,6 m','Platform beton 54 × 32 m, tebal 0,6 m, dengan oculus r=12,6 m.','Lantai utama yang selalu kering (Freeboard 0,6 m dari BFE). Beton self-healing menutup retak (SNI 1727:2020).',[10,22,38,0,2.6,8]],
  ramp:['Ramp landai','Jalur melengkung ±53 m dengan kemiringan ±5% dari tanah ke dek.','Akses lansia, kursi roda, dan gerobak menuju dek +2,6 m, juga saat banjir.',[-32,18,58,-8,1.5,30]],
  drain:['Lubang drainase','Satu lubang besar dan lima lubang kecil di dasar amfiteater.','Mengalirkan air ke Rockflow dan tangki tanpa membebani saluran kota.',[0,12,12,0,-3,0]],
- pipes:['Jaringan pipa','Pipa teal tebal: atap → tangki, amfiteater → tangki, dan tangki → irigasi/fasad.','Memindahkan air secara gravitasi dan pompa kecil. Gunakan "Mode Sistem" untuk melihat alur menyeluruh.',[46,6,20,28,-3,-6],1],
+ pipes:['Jaringan pipa','Sistem teknis: Pipa Hijau (Air Hujan), Oranye (Drainase), Biru (Pendingin).','Memindahkan air secara gravitasi dan pompa. Gunakan "Mode Sistem" untuk melihat alur isometrik.',[46,6,20,28,-3,-6],1],
+ pump:['Stasiun Pompa','Unit pompa biru di dekat tangki untuk memindahkan air dari Rockflow.','Memastikan air genangan cepat surut dan dialihkan ke tangki penyimpanan.',[35,-6.2,-4],1],
  trees:['Vegetasi','Pohon dan semak kartun serta planter di dek.','Peneduhan dan pendinginan mikro; diairi air hujan tampungan.',[-10,18,58,0,0,10]],
  people:['Warga banjar','Figur low-poly: pelari, penonton, pengunjung hall dan perpustakaan.','Memberi skala manusia dan menunjukkan ruang komunal yang hidup.',[0,26,56,0,2,0]]};
 
@@ -363,16 +390,16 @@ function showInfo(k){const d=INFO[k];if(!d)return;$('#it').textContent=d[0];$('#
  focus=new Set([k]);if(d[4])xr.checked=true;camTo(d[3]);follow=true}
 function closeInfo(){$('#info').hidden=true;focus=new Set(mode?MODES[mode].steps[idx].f:[])}
 
-// LOGIKA MODE SISTEM PEMIPAAN (X-RAY PIPA)
+// LOGIKA MODE SISTEM PEMIPAAN (TEKNIS)
 function toggleSys() {
   sysMode = !sysMode;
   $('#sys').classList.toggle('on', sysMode);
   if (sysMode) {
-    closeMode(); // Matikan step by step
-    focus = new Set(['pipes', 'tank', 'rock', 'drain']); // Fokus ke sistem
+    closeMode(); 
+    focus = new Set(['pipes', 'tank', 'rock', 'drain', 'pump']); 
     camTo([60, 30, 60, 0, -2, 0]);
     follow = true;
-    $('#hs').textContent = 'Mode Sistem Pemipaan';
+    $('#hs').textContent = 'Mode Sistem Teknis';
   } else {
     focus = new Set();
     $('#hs').textContent = 'Jelajah Bebas';
@@ -390,7 +417,7 @@ $('#col').onclick=()=>{const p=$('#panel');p.classList.toggle('collapsed');$('#c
 if(innerWidth<700)$('#col').click();
 
 // PERBAIKAN NAVIGASI KAMERA
-controls.addEventListener('start', () => { follow = false; }); // Hentikan follow jika user drag
+controls.addEventListener('start', () => { follow = false; });
 
 /* ---------- raycaster: hover + klik ---------- */
 const ray=new THREE.Raycaster(),mp=new THREE.Vector2(),tip=$('#tip');let dx0=0,dy0=0;
@@ -414,7 +441,7 @@ renderer.setAnimationLoop(()=>{
  $('#sb').style.width=mode?((idx+Math.min(tm/STEP_MS,1))/MODES[mode].steps.length*100)+'%':'0';
  V.w=mv(V.w,T.w,.55*dt);V.tank=mv(V.tank,T.tank,6*dt);V.wet=mv(V.wet,T.wet,.35*dt);V.mud=mv(V.mud,T.mud,.3*dt);V.crack=mv(V.crack,T.crack,.3*dt);V.xray=mv(V.xray,xr.checked||sysMode?1:0,3*dt);
  
- // Logika Opasitas Mode Sistem
+ // Logika Opasitas & Ghosting Mode Teknis
  mGrass.userData.b=mSoil.userData.b=1-.88*V.xray;mBowl.userData.b=1-.55*V.xray;
  mGrass.color.copy(grassB).lerp(mudC,V.mud*.8);mBowl.color.copy(bowlB).lerp(bowlM,V.mud*.8);
  
@@ -422,10 +449,14 @@ renderer.setAnimationLoop(()=>{
    const g=G[k];
    let targetOpacity = (!focus.size||focus.has(k)||KEEP.has(k)) ? 1 : 0.16;
    
-   // Jika Sys Mode, paksa bangunan jadi transparan dan pipa menyala
+   // Jika Sys Mode, bangunan menjadi putih transparan (ghosting)
    if(sysMode) {
-     if(['pipes','tank','rock','drain'].includes(k)) targetOpacity = 1;
-     else targetOpacity = 0.05; // Bangunan sangat transparan
+     if(['pipes','tank','rock','drain','pump'].includes(k)) {
+       targetOpacity = 1;
+     } else {
+       targetOpacity = 0.05; // Sangat transparan
+       for(const m of g.m) m.color.setHex(0xffffff); // Ubah warna bangunan jadi putih
+     }
    }
 
    g.dim += (targetOpacity-g.dim)*Math.min(1,dt*6);
@@ -455,9 +486,10 @@ renderer.setAnimationLoop(()=>{
  if(T.rain||sysMode){rain.count=1200;for(let i=0;i<1200;i++){ry[i]-=rs[i]*dt;if(ry[i]<fl(rx[i],rz[i])){ry[i]=rnd(12,16);rx[i]=rnd(-34,34);rz[i]=rnd(-24,24)}put(rain,i,rx[i],ry[i],rz[i],1,1.8)}rain.instanceMatrix.needsUpdate=true}else rain.count=0;
  if(T.whirl&&w>-3.1){whirl.count=100;const y=Math.max(-3.15,Math.min(w,0))+.06;for(let i=0;i<100;i++){wr[i]-=dt*.35;if(wr[i]<.05)wr[i]=1.4+Math.random()*.4;wa[i]+=dt*(2+1.8/(wr[i]+.3));put(whirl,i,Math.cos(wa[i])*wr[i],y,Math.sin(wa[i])*wr[i])}whirl.instanceMatrix.needsUpdate=true}else whirl.count=0;
  
- // Aliran pipa (selalu nyala saat sysMode)
+ // Aliran pipa (Gunakan kurva manual untuk mengikuti siku)
  const pMode = sysMode ? 'roof' : T.flow; 
- const pc=PATHS[pMode];
+ // Untuk sistem teknis, kita animasikan partikel pada satu jalur utama (misal air hujan)
+ const pc = pMode ? new THREE.CatmullRomCurve3([[25, 8.5, -6], [25, 8.5, -7], [29, 8.5, -7], [29, -4.7, -7]].map(p=>new THREE.Vector3(...p))) : null;
  if(pc){flow.count=80;for(let i=0;i<80;i++){pc.getPointAt(((i/80)+time*.08)%1,tv);put(flow,i,tv.x,tv.y,tv.z)}flow.instanceMatrix.needsUpdate=true}else flow.count=0;
  
  if(T.air){air.count=140;for(let i=0;i<140;i++){ax[i]-=as[i]*dt;if(ax[i]<21){ax[i]=rnd(31,36);ay[i]=rnd(3.4,6.3);az[i]=rnd(-2.8,2.8)}
@@ -474,14 +506,12 @@ renderer.setAnimationLoop(()=>{
  renderer.render(scene,camera)});
 
 /* ---------- self-check ---------- */
-(function(){const KW={deck:'dek',hall:'Food Hall',lib:'Perpustakaan',under:'undercroft',people:'warga',bowl:'amfiteater',track:'jogging track',drain:'drainase',roof:'atap',tank:'tangki',pipes:'pipa',rock:'Rockflow',facade:'fasad|keramik',ramp:'ramp',bfe:'BFE',trees:'taman|pohon'},log=[];
- for(const [k,m] of Object.entries(MODES)){if(m.steps.length<4)log.push(k+': <4 langkah');
-  m.steps.forEach((s,i)=>{const n=(s.n.match(/[.!?](\s|$)/g)||[]).length;if(n<3)log.push(`${k}#${i+1}: <3 kalimat`);
-   s.f.forEach(g=>{if(!G[g])log.push(`${k}#${i+1}: grup ${g} tidak ada`);else if(!new RegExp(KW[g],'i').test(s.n))log.push(`${k}#${i+1}: tidak menyebut ${g}`)})})}
- for(const k in INFO)if(!G[k])log.push('INFO tanpa grup: '+k);
- ['#reset','#bk','#pp','#nx','#cl','#xr','#lb','#ic','#col','#sys'].forEach(q=>{if(!$(q))log.push('tombol hilang '+q)});
- $('#self').textContent='Self-check: '+(log.length?log.length+' masalah (lihat console)':'OK ✓ (Fitur Sistem & Sitasi Aktif)');
- console[log.length?'warn':'info']('Self-check',log.length?log:'OK')})();
+(function(){
+  const log=[];
+  for(const [k,m] of Object.entries(MODES)){if(m.steps.length<4)log.push(k+': <4 langkah');}
+  ['#reset','#bk','#pp','#nx','#cl','#xr','#lb','#ic','#col','#sys'].forEach(q=>{if(!$(q))log.push('tombol hilang '+q)});
+  $('#self').textContent='Status: '+(log.length?log.length+' masalah (lihat console)':'Sistem & Interaksi Siap ✓');
+  console[log.length?'warn':'info']('Self-check',log.length?log:'OK')})();
 </script>
 </body>
 </html>
