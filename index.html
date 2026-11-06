@@ -68,8 +68,9 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;-webkit-fon
 /* ========== SIMULATION UI ========== */
 #sim-container{
   position:fixed;inset:0;z-index:1;display:none;
-  background:#cbd5e1;font-family:'Inter',sans-serif;color:#0f172a;
+  font-family:'Inter',sans-serif;color:#0f172a;
   -webkit-font-smoothing:antialiased;overflow:hidden;
+  background:transparent; /* Biarkan canvas 3D terlihat */
 }
 #sim-container.active{display:block}
 
@@ -127,7 +128,6 @@ h1{font-size:16px;line-height:1.3;margin:0 0 4px;font-weight:700}
 <div id="intro-container">
   <div class="intro-bg"><div class="orb"></div><div class="orb"></div><div class="orb"></div></div>
 
-  <!-- Slide 1: Title -->
   <div class="slide active" data-slide="0">
     <div class="label">Regenerative Architecture</div>
     <h1 class="title">Ruang Komunal<br><span class="accent">Terangkat Adaptif</span></h1>
@@ -141,7 +141,6 @@ h1{font-size:16px;line-height:1.3;margin:0 0 4px;font-weight:700}
     </div>
   </div>
 
-  <!-- Slide 2: Issue -->
   <div class="slide" data-slide="1">
     <div class="label">The Issue</div>
     <h1 class="title">Banjir yang <span class="accent">Tak Terbendung</span></h1>
@@ -155,7 +154,6 @@ h1{font-size:16px;line-height:1.3;margin:0 0 4px;font-weight:700}
     </div>
   </div>
 
-  <!-- Slide 3: Problem -->
   <div class="slide" data-slide="2">
     <div class="label">The Problem</div>
     <h1 class="title">Ketika Air <span class="accent">Diusir</span></h1>
@@ -169,7 +167,6 @@ h1{font-size:16px;line-height:1.3;margin:0 0 4px;font-weight:700}
     </div>
   </div>
 
-  <!-- Slide 4: Solution -->
   <div class="slide" data-slide="3">
     <div class="label">The Solution</div>
     <h1 class="title">Regeneratif & <span class="accent">Adaptif</span></h1>
@@ -198,6 +195,8 @@ h1{font-size:16px;line-height:1.3;margin:0 0 4px;font-weight:700}
 
 <!-- ==================== SIMULATION CONTAINER ==================== -->
 <div id="sim-container">
+  <!-- Canvas 3D akan dimasukkan ke sini secara otomatis oleh script -->
+  
   <div id="labels"></div>
   <div id="balloon"><span class="t" id="bt">Penjelasan Sistem</span><span id="bc"></span></div>
   
@@ -296,16 +295,19 @@ const $=s=>document.querySelector(s),rnd=(a,b)=>a+Math.random()*(b-a),mv=(a,b,d)
 const C={cream:0xcbd5e1,terra:0xb45309,moss:0x22c55e,sage:0x4ade80,wood:0xb45309,wood2:0x78350f,soil:0x451a03,brick:0xef4444,
  cPathA:0x2563eb, cPathB:0xea580c, cBee:0xd97706, cToilet:0x0ea5e9, cGarden:0x22c55e, cOver:0x9333ea, cCity:0x475569};
 
-const renderer=new THREE.WebGLRenderer({antialias:true, alpha:false});
+const renderer=new THREE.WebGLRenderer({antialias:true, alpha:true});
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));
 renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;
-document.body.prepend(renderer.domElement);
 
-// Ensure canvas is positioned correctly under the UI
-renderer.domElement.style.position = 'fixed';
+// PERBAIKAN: Masukkan canvas ke dalam #sim-container dan letakkan di background (z-index 0)
+const simContainer = document.getElementById('sim-container');
+simContainer.insertBefore(renderer.domElement, simContainer.firstChild);
+renderer.domElement.style.position = 'absolute';
 renderer.domElement.style.top = '0';
 renderer.domElement.style.left = '0';
+renderer.domElement.style.width = '100%';
+renderer.domElement.style.height = '100%';
 renderer.domElement.style.zIndex = '0';
 
 const scene=new THREE.Scene();
