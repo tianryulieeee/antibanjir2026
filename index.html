@@ -70,11 +70,8 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;-webkit-fon
   position:fixed;inset:0;z-index:1;display:none;
   font-family:'Inter',sans-serif;color:#0f172a;
   -webkit-font-smoothing:antialiased;overflow:hidden;
-  background:transparent;
-  /* PERBAIKAN #1: izinkan event mouse menembus ke canvas WebGL */
-  pointer-events:none;
+  background:transparent;pointer-events:none;
 }
-/* PERBAIKAN #1: panel & info tetap interaktif */
 #panel, #info {pointer-events:auto;}
 #sim-container.active{display:block}
 
@@ -255,7 +252,7 @@ h1{font-size:16px;line-height:1.3;margin:0 0 4px;font-weight:700}
       </div>
       <div class="tg"><label><input type="checkbox" id="xr"> X-ray tanah</label><label><input type="checkbox" id="lb" checked> Label</label></div>
       <div id="legend">
-        <span><i style="background:#94a3b8"></i>Beton</span><span><i style="background:#b45309"></i>Kayu</span>
+        <span><i style="background:#94a3b8"></i>Beton</span><span><i style="background:#b45309"></i>Kayu/Terakota</span>
         <span><i style="background:#22c55e"></i>Atap Hijau</span><span><i style="background:#ef4444"></i>Jogging Track</span>
         <span><i style="background:#2563eb"></i>Jalur A</span><span><i style="background:#ea580c"></i>Jalur B</span>
         <span><i style="background:#9333ea"></i>Overflow</span><span><i style="background:#475569"></i>Outlet</span>
@@ -326,7 +323,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-<!-- ==================== 3D SIMULATION LOGIC (FIXED) ==================== -->
+<!-- ==================== 3D SIMULATION LOGIC (REDESIGNED) ==================== -->
 <script type="module">
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
@@ -334,16 +331,17 @@ import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 
 const $=s=>document.querySelector(s),rnd=(a,b)=>a+Math.random()*(b-a),mv=(a,b,d)=>a+Math.max(-d,Math.min(d,b-a));
 
+// MATERIAL PALETTE (Sesuai Referensi)
 const C = {
-    terra: 0xc27a5c,
-    concrete: 0xd6d3d1,
-    concreteDark: 0x78716c,
-    wood: 0x78350f,
-    moss: 0x4d7c0f,
-    sage: 0x65a30d,
-    water: 0x1e3a8a,
-    glass: 0xe2e8f0,
-    metal: 0x475569,
+    concrete: 0xd6d3d1,     // Beton terang (Amfiteater & Fasad Utama)
+    concreteDark: 0x78716c, // Beton gelap
+    wood: 0x78350f,         // Dek kayu / bata ekspos
+    terra: 0xc27a5c,        // Tanah liat / Terracotta (Beehive)
+    moss: 0x4d7c0f,         // Hijau atap
+    sage: 0x65a30d,         // Hijau tanaman
+    water: 0x1e3a8a,        // Air
+    glass: 0xe2e8f0,        // Kaca
+    metal: 0x475569,        // Logam tangki
     cPathA: 0x2563eb, cPathB: 0xd97706, cBee: 0xb45309, cToilet: 0x0e7490, cGarden: 0x15803d, cOver: 0x7e22ce, cCity: 0x334155
 };
 
@@ -367,7 +365,7 @@ scene.environment=pm.fromScene(new RoomEnvironment(),0.04).texture;
 scene.environmentIntensity=0.6;
 
 const camera=new THREE.PerspectiveCamera(35,1,.1,900);
-camera.position.set(60,45,70);
+camera.position.set(50,40,60);
 
 const controls=new OrbitControls(camera,renderer.domElement);
 controls.enableDamping=true; controls.dampingFactor=0.05;
@@ -387,7 +385,7 @@ Object.assign(sun.shadow.camera,{left:-80,right:80,top:80,bottom:-80,near:10,far
 sun.shadow.bias=-0.0004;sun.shadow.normalBias=0.05;
 scene.add(sun);
 
-/* ---------- MATERIALS ---------- */
+/* ---------- MATERIALS & HELPERS ---------- */
 const G={},grp=n=>G[n]||(G[n]={m:[],dim:1}),KEEP=new Set(['ground','bfe']);
 function mat(g,color,op=1,o={}){
     const isPhys = o.transmission !== undefined || o.clearcoat !== undefined;
@@ -398,116 +396,143 @@ function mat(g,color,op=1,o={}){
 const pick=[],dm=new THREE.Object3D();
 function M(geo,m,x,y,z,key,par=scene){const o=new THREE.Mesh(geo,m);o.position.set(x,y,z);o.receiveShadow=true;o.castShadow=Array.isArray(m)||m.userData.b===1;
  if(key){o.userData.key=key;pick.push(o)}par.add(o);return o}
-const bx=(w,h,d,m,x,y,z,k)=>M(new THREE.BoxGeometry(w,h,d),m,x,y,z,k);
 const put=(m,i,x,y,z,s=1,sy=s)=>{dm.position.set(x,y,z);dm.rotation.set(0,0,0);dm.scale.set(s,sy,s);dm.updateMatrix();m.setMatrixAt(i,dm.matrix)};
 
-/* ---------- GROUND & SWALE ---------- */
+/* ---------- GROUND ---------- */
 const mGrass=mat('ground',C.moss,1,{roughness:1,metalness:0});
 {const ground=new THREE.Mesh(new THREE.PlaneGeometry(200,200),mGrass);
  ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground)}
 
-const swaleMat = mat('swale', 0x38bdf8, 0.5, {roughness: 0.1, metalness: 0.3, transparent: true});
-const swale1 = M(new THREE.RingGeometry(14, 18, 64, 1, 0, Math.PI), swaleMat, 0, 0.05, 0, 'swale');
-swale1.rotation.x = -Math.PI/2;
-const swale2 = M(new THREE.RingGeometry(18, 24, 64, 1, 0.5, 1.5), swaleMat, 0, 0.05, 0, 'swale');
-swale2.rotation.x = -Math.PI/2;
+/* =========================================================
+   REDESIGN: AMFITEATER (Berdasarkan Gambar 2)
+   ========================================================= */
+const amphiGroup = new THREE.Group();
+amphiGroup.position.set(0, 0, 0);
+scene.add(amphiGroup);
 
-const trashRackMat = mat('swale', 0x334155, 1, {metalness:0.8, roughness:0.2});
-for(let i=0; i<10; i++) { M(new THREE.BoxGeometry(0.1, 1, 4), trashRackMat, 14 + Math.cos(0)*3, 0.5, -3 + i*0.8, 'trashRack'); }
+const mAmphi = mat('bowl', C.concrete, 1, {roughness:0.9});
+const mAmphiWood = mat('bowl', C.wood, 1, {roughness:0.8});
 
-const dryingBedMat = mat('deck', C.concreteDark, 1, {roughness:0.9});
-M(new THREE.BoxGeometry(6, 0.2, 6), dryingBedMat, -30, 0.1, -20, 'dryingBed');
-M(new THREE.BoxGeometry(0.2, 1.5, 6), dryingBedMat, -33, 0.85, -20, 'dryingBed');
-M(new THREE.BoxGeometry(0.2, 1.5, 6), dryingBedMat, -27, 0.85, -20, 'dryingBed');
-M(new THREE.BoxGeometry(6, 1.5, 0.2), dryingBedMat, -30, 0.85, -23, 'dryingBed');
-
-/* ---------- AMFITEATER (ORGANIC TERRACED) ---------- */
-const mBowl = mat('bowl', C.terra, 1, {side:THREE.DoubleSide, roughness:0.9});
-for (let i=0; i<6; i++) {
-    let radius = 18 - i*2;
-    let depth = -3.2 + i*0.5;
-    let geo = new THREE.CylinderGeometry(radius, radius, 0.5, 64, 1, true);
-    let mesh = new THREE.Mesh(geo, mBowl);
-    mesh.position.y = depth;
-    mesh.receiveShadow = true;
-    mesh.castShadow = true;
-    mesh.userData.key = 'bowl'; pick.push(mesh); scene.add(mesh);
+// Undakan melingkar (semi-circle) menjorok ke bawah
+for (let i = 0; i < 6; i++) {
+    let radius = 22 - i * 2;
+    let yDepth = -3.2 + i * 0.5; // Mulai dari -3.2 naik ke -0.7
+    // Menggunakan CylinderGeometry setengah lingkaran (thetaLength: PI)
+    let stepGeo = new THREE.CylinderGeometry(radius, radius, 0.5, 64, 1, false, Math.PI, Math.PI);
+    let step = new THREE.Mesh(stepGeo, mAmphi);
+    step.position.y = yDepth;
+    step.castShadow = step.receiveShadow = true;
+    step.userData.key = 'bowl'; pick.push(step);
+    amphiGroup.add(step);
+    
+    // Tambahkan tekstur undakan kayu/beton di atasnya
+    let seatGeo = new THREE.CylinderGeometry(radius - 0.2, radius - 0.2, 0.1, 64, 1, false, Math.PI, Math.PI);
+    let seat = new THREE.Mesh(seatGeo, mAmphiWood);
+    seat.position.y = yDepth + 0.25;
+    seat.userData.key = 'bowl'; pick.push(seat);
+    amphiGroup.add(seat);
 }
-M(new THREE.CircleGeometry(8, 64), mat('bowl', C.terra), 0, -3.2, 0, 'bowl').rotation.x = -Math.PI/2;
+// Dasar amfiteater
+let floor = new THREE.Mesh(new THREE.CylinderGeometry(10, 10, 0.1, 64, 1, false, Math.PI, Math.PI), mAmphi);
+floor.position.y = -3.2; floor.receiveShadow = true; floor.userData.key = 'bowl'; pick.push(floor);
+amphiGroup.add(floor);
 
+// Vegetasi tepi (seperti gambar referensi)
 const mPlant = mat('plants', C.sage, 1, {flatShading: true});
-for(let i=0; i<50; i++) {
-    let angle = rnd(0, Math.PI*2);
-    let rad = rnd(10, 17);
-    M(new THREE.ConeGeometry(rnd(0.5, 1), rnd(1, 2), 5), mPlant, Math.cos(angle)*rad, rnd(-2, 0.5), Math.sin(angle)*rad, 'plants');
+for(let i=0; i<40; i++) {
+    let angle = rnd(Math.PI, Math.PI*2); // Hanya di area belakang/tepi
+    let rad = rnd(18, 23);
+    M(new THREE.ConeGeometry(rnd(0.5, 1), rnd(1.5, 3), 5), mPlant, Math.cos(angle)*rad, rnd(-0.5, 1), Math.sin(angle)*rad, 'plants', amphiGroup);
 }
 
-/* ---------- DEK MELENGKUNG & ATAP ---------- */
-const rr = (w,h,r) => {const s=new THREE.Shape();s.moveTo(-w+r,-h);s.lineTo(w-r,-h);s.quadraticCurveTo(w,-h,w,-h+r);s.lineTo(w,h-r);s.quadraticCurveTo(w,h,w-r,h);s.lineTo(-w+r,h);s.quadraticCurveTo(-w,h,-w,h-r);s.lineTo(-w,-h+r);s.quadraticCurveTo(-w,-h,-w+r,-h);return s};
-const deckShape = rr(35, 25, 10);
-const deckHole = new THREE.Path();
-deckHole.absellipse(0, 0, 19, 19, 0, Math.PI*2, true);
-deckShape.holes.push(deckHole);
+/* =========================================================
+   REDESIGN: MAIN BUILDING (Berdasarkan Gambar 3)
+   ========================================================= */
+const bldgGroup = new THREE.Group();
+bldgGroup.position.set(0, 0, -18); // Diletakkan di belakang amfiteater
+scene.add(bldgGroup);
 
-const mDeck = mat('deck', C.concrete, 1, {roughness: 0.8});
-const deckGeo = new THREE.ExtrudeGeometry(deckShape, {depth: 0.6, bevelEnabled: true, bevelThickness: 0.1, bevelSize: 0.1, bevelSegments: 3});
-const deck = new THREE.Mesh(deckGeo, mDeck);
-deck.rotation.x = -Math.PI/2;
-deck.position.y = 2.0;
-deck.castShadow = deck.receiveShadow = true;
-deck.userData.key = 'deck'; pick.push(deck); scene.add(deck);
+// 1. Lower Volume (Wood/Brick base - Food Hall & Under Croft)
+const mWoodBase = mat('hall', C.wood, 1, {roughness:0.8});
+M(new THREE.BoxGeometry(32, 2, 14), mWoodBase, 0, 1, 0, 'hall', bldgGroup);
 
-const roofCurve = new THREE.CatmullRomCurve3([
-    new THREE.Vector3(-25, 7, -15),
-    new THREE.Vector3(-10, 9, -5),
-    new THREE.Vector3(10, 9, 5),
-    new THREE.Vector3(25, 7, 15)
-]);
-const roofTube = new THREE.TubeGeometry(roofCurve, 64, 12, 8, false);
-const mRoof = mat('roof', C.moss, 1, {roughness: 1});
-const roofMesh = new THREE.Mesh(roofTube, mRoof);
-roofMesh.scale.set(1, 0.3, 1);
-roofMesh.position.y = 2;
-roofMesh.castShadow = true;
-roofMesh.userData.key = 'roof'; pick.push(roofMesh); scene.add(roofMesh);
+// 2. Upper Volume (White Concrete - Cantilever)
+const mWhiteConcrete = mat('deck', 0xffffff, 1, {roughness:0.4}); // Warna putih bersih
+M(new THREE.BoxGeometry(36, 4.5, 16), mWhiteConcrete, 0, 4.25, 2, 'deck', bldgGroup);
 
-/* Kaca paviliun (dipisah per grup agar highlight fokus bekerja) */
-const mGlass = mat('hall', C.glass, 0.2, {transmission:0.9, roughness:0.05, metalness:0.1, clearcoat:1});
-const mGlassLib = mat('lib', C.glass, 0.2, {transmission:0.9, roughness:0.05, metalness:0.1, clearcoat:1});
-M(new THREE.BoxGeometry(15, 4, 10), mGlass, -20, 4.5, -10, 'hall');
-M(new THREE.BoxGeometry(15, 4, 10), mGlassLib, 20, 4.5, 10, 'lib');
+// 3. Interior Glass (menampilkan isi Food Hall di lantai dasar)
+const mGlass = mat('hall', C.glass, 0.3, {transmission:0.9, roughness:0.05, metalness:0.1, clearcoat:1});
+M(new THREE.BoxGeometry(30, 1.8, 0.2), mGlass, 0, 1, 7.01, 'hall', bldgGroup); // Kaca depan
 
-/* PERBAIKAN #3: tambah mesh Fasad Beehive (agar mode Beehive Cooling punya objek) */
-const mFacade = mat('facade', 0xb45309, 1, {roughness: 0.7});
-M(new THREE.BoxGeometry(0.4, 4, 8), mFacade, 25.4, 4.5, 0, 'facade');
-
-const mWoodHall = mat('hall', C.wood, 1, {roughness: 0.8});
-const mWoodLib = mat('lib', C.wood, 1, {roughness: 0.8});
-for(let i=0; i<5; i++) {
-    bx(2, 0.8, 8, mWoodHall, -22 + i*2, 3, -10, 'hall');
-    bx(2, 0.8, 8, mWoodLib, 18 + i*2, 3, 10, 'lib');
+// 4. Furniture Interior Sederhana (Meja panjang & bangku)
+const mFurniture = mat('hall', 0x475569, 1, {roughness:0.6});
+for(let x=-12; x<=12; x+=6) {
+    M(new THREE.BoxGeometry(3, 0.1, 1.5), mFurniture, x, 1.2, 4, 'hall', bldgGroup); // Meja
+    M(new THREE.BoxGeometry(3, 0.4, 0.3), mFurniture, x, 1.0, 3, 'hall', bldgGroup); // Kursi
+    M(new THREE.BoxGeometry(3, 0.4, 0.3), mFurniture, x, 1.0, 5, 'hall', bldgGroup); // Kursi
 }
 
-/* ---------- KOLOM PENYANGGA ---------- */
-const mCol = mat('under', C.concrete, 1, {roughness:0.9});
-const cp = [];
-for(let i=0; i<20; i++) {
-    let angle = i * Math.PI * 2 / 20;
-    let rad = rnd(22, 30);
-    cp.push([Math.cos(angle)*rad, Math.sin(angle)*rad]);
+// 5. Library section (Perpustakaan di sisi kanan)
+const mLibGlass = mat('lib', C.glass, 0.3, {transmission:0.9, roughness:0.05, metalness:0.1, clearcoat:1});
+M(new THREE.BoxGeometry(10, 3, 0.2), mLibGlass, 10, 2.5, 10.01, 'lib', bldgGroup); // Kaca samping
+const mBooks = mat('lib', 0xd97706, 1, {roughness:0.8});
+for(let y=1.5; y<=3.5; y+=0.8) {
+    M(new THREE.BoxGeometry(8, 0.4, 0.5), mBooks, 10, y, 9, 'lib', bldgGroup); // Rak buku
 }
-cp.forEach(([x,z]) => {
-    let col = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 2.6, 16), mCol);
-    col.position.set(x, 1.3, z);
-    col.castShadow = true; col.receiveShadow = true;
-    col.userData.key = 'under'; pick.push(col); scene.add(col);
-});
+
+/* =========================================================
+   REDESIGN: BEEHIVE COOLING (Berdasarkan Gambar 4)
+   ========================================================= */
+const beehiveGroup = new THREE.Group();
+beehiveGroup.position.set(18.2, 2.0, 2); // Tempel di sisi kanan gedung atas
+beehiveGroup.rotation.y = Math.PI / 2;
+scene.add(beehiveGroup);
+
+const mTerra = mat('facade', C.terra, 1, {roughness: 0.9});
+// Membuat susunan grid pipa tanah liat
+const pipeGeo = new THREE.CylinderGeometry(0.3, 0.3, 1.2, 16);
+pipeGeo.rotateX(Math.PI/2); // Posisikan horizontal
+const instPipe = new THREE.InstancedMesh(pipeGeo, mTerra, 150); // 10 baris x 15 kolom
+let pIdx = 0;
+for(let y=0; y<6; y++) {
+    for(let x=-4; x<=4; x+=0.6) {
+        let z = -1.6 + (y%2)*0.2; // Selang-seling (offset) agar rapi
+        dm.position.set(x, y*0.6, z);
+        dm.updateMatrix();
+        instPipe.setMatrixAt(pIdx++, dm.matrix);
+    }
+}
+instPipe.castShadow = true; instPipe.receiveShadow = true;
+instPipe.userData.key = 'facade'; pick.push(instPipe);
+beehiveGroup.add(instPipe);
+
+// Bak penampung bawah
+M(new THREE.BoxGeometry(10, 0.5, 2), mat('facade', C.concreteDark, 1, {roughness:0.9}), 0, -0.3, 0, 'facade', beehiveGroup);
+
+/* =========================================================
+   REDESIGN: GREEN ROOF & RAINWATER HARVESTING
+   ========================================================= */
+const roofGroup = new THREE.Group();
+roofGroup.position.set(0, 6.5, 2); // Di atas gedung
+scene.add(roofGroup);
+
+// Lapisan Tanah (Soil)
+M(new THREE.BoxGeometry(34, 0.3, 14), mat('roof', 0x3f3f46, 1, {roughness:1}), 0, 0, 0, 'roof', roofGroup);
+// Vegetasi
+for(let i=0; i<80; i++){
+    let x = rnd(-16, 16), z = rnd(-6, 6);
+    M(new THREE.ConeGeometry(rnd(0.2,0.4), rnd(0.4,0.8), 5), mPlant, x, 0.3, z, 'roof', roofGroup);
+}
+// Pipa talang penampung hujan
+const mPipe = mat('pipe_pathA', C.metal, 1, {metalness:0.8, roughness:0.2});
+M(new THREE.CylinderGeometry(0.2, 0.2, 16, 8), mPipe, 16, 0, 6, 'pipe_pathA', roofGroup).rotation.z = Math.PI/2;
 
 /* ---------- SISTEM AIR (TANGKI & FILTER) ---------- */
-const filterUnit = M(new THREE.BoxGeometry(4, 2, 3), mat('filter', 0x1e293b, 1, {metalness:0.6, roughness:0.3}), 45, -4, -10, 'filter');
-M(new THREE.BoxGeometry(3.8, 1.8, 2.8), mat('filter', 0x3b82f6, 1, {roughness:0.1, metalness:0.5}), 45, -4, -10, 'filter');
+// Diposisikan di area belakang gedung agar tidak menutupi visual utama
+const filterUnit = M(new THREE.BoxGeometry(4, 2, 3), mat('filter', 0x1e293b, 1, {metalness:0.6, roughness:0.3}), -25, -2, -15, 'filter');
+M(new THREE.BoxGeometry(3.8, 1.8, 2.8), mat('filter', 0x3b82f6, 1, {roughness:0.1, metalness:0.5}), -25, -2, -15, 'filter');
 
-const tk = new THREE.Group(); tk.position.set(45, -4.7, -15); scene.add(tk);
+const tk = new THREE.Group(); tk.position.set(-25, -3.7, -20); scene.add(tk);
 const tankMetal = mat('tank', C.metal, 1, {metalness: 0.8, roughness: 0.2});
 const tankWater = [];
 
@@ -520,8 +545,8 @@ const twB = new THREE.Mesh(new THREE.CylinderGeometry(1.5,1.5,1,32).translate(0,
 twB.position.set(0, -1.4, 5); tk.add(twB); tankWater.push({mesh:twB, val:0});
 
 const pondMat = mat('pond', C.water, 0.9, {transparent: true, roughness: 0.1});
-const pondBase = M(new THREE.CylinderGeometry(6, 6, 0.5, 32), mat('pondBase', C.concreteDark, 1, {roughness: 0.9}), 45, -4.5, 20, 'pond');
-const pondWater = M(new THREE.CylinderGeometry(5.9, 5.9, 0.4, 32), pondMat, 45, -4.4, 20, 'pond');
+const pondBase = M(new THREE.CylinderGeometry(6, 6, 0.5, 32), mat('pondBase', C.concreteDark, 1, {roughness: 0.9}), -25, -3.5, 20, 'pond');
+const pondWater = M(new THREE.CylinderGeometry(5.9, 5.9, 0.4, 32), pondMat, -25, -3.4, 20, 'pond');
 pondWater.scale.y = 0.01;
 
 /* ---------- PIPA (SISTEM ALIRAN) ---------- */
@@ -539,51 +564,56 @@ function createPipe(waypoints, color, key) {
   return curve;
 }
 
-const cvA = createPipe([[18, 8.6, -5], [28, 8.6, -5], [28, -2, -5], [45, -2, -2], [45, -4.7, -2], [45, -4.7, -15], [45, -4.7, -15]], C.cPathA, 'pipe_pathA');
-const cvB = createPipe([[0, -6, 0], [20, -6, 0], [20, -4, 0], [45, -4, -2], [45, -4.7, -10], [45, -4.7, -10]], C.cPathB, 'pipe_pathB');
-const cvBee = createPipe([[45, -4.7, -15], [45, -4.7, -20], [45, 7.5, -20], [25.5, 7.5, -20], [25.5, 7.5, 0], [25.5, 5, 0]], C.cBee, 'pipe_bee');
-createPipe([[45, -4.7, -15], [45, -4.7, 2], [20, -4.7, 2], [20, -4.7, -13], [20, 2.8, -13]], C.cToilet, 'pipe_toilet');
-createPipe([[45, -4.7, -15], [45, -4.7, 8], [18, -4.7, 8], [18, -4.7, 12], [18, 2.6, 12]], C.cGarden, 'pipe_garden');
-const cvOver = createPipe([[45, -4.7, -10], [45, -4.7, 10], [45, -4.7, 20]], C.cOver, 'pipe_overflow');
-createPipe([[45, -4.7, 20], [55, -4.7, 20], [55, -4.7, 35], [65, -4.7, 35]], C.cCity, 'pipe_city');
+// Waypoints disesuaikan dengan posisi gedung baru
+const cvA = createPipe([[-10, 7, -14], [-20, 7, -14], [-20, -2, -14], [-25, -2, -15]], C.cPathA, 'pipe_pathA');
+const cvB = createPipe([[0, -3.2, 0], [-10, -3.2, 0], [-20, -3.2, 0], [-25, -3.2, -15]], C.cPathB, 'pipe_pathB');
+const cvBee = createPipe([[-25, -3.7, -20], [-25, -3.7, 2], [20, -3.7, 2], [20, 2, 2], [18, 2, 2]], C.cBee, 'pipe_bee');
+createPipe([[-25, -3.7, -20], [-25, -3.7, 0], [-10, -3.7, 0], [-10, 1, 7]], C.cToilet, 'pipe_toilet');
+createPipe([[-25, -3.7, -20], [-25, -3.7, 10], [10, -3.7, 10], [10, 1, 10]], C.cGarden, 'pipe_garden');
+const cvOver = createPipe([[-25, -3.7, -20], [-25, -3.7, 20]], C.cOver, 'pipe_overflow');
+createPipe([[-25, -3.7, 20], [-15, -3.7, 30], [0, -3.7, 40]], C.cCity, 'pipe_city');
 
 /* ---------- ORANG, AIR, HUJAN ---------- */
 const P=[],pal=[0x475569,0x334155,0x1e293b],skin=[0xfbd38d,0xe2b48c,0xc68e63];
 const add=o=>P.push({sh:0,g:0,s:0,y:0,x:0,z:0,sp:1,amp:0,ph:rnd(0,6.28),...o});
-for(let i=0;i<9;i++)add({t:'j',a:i*.8,r:10.5+(i%3)*.55,sp:(i%2?-1:1)*(.35+.07*(i%3)),g:1});
-for(let k=0;k<24;k++){const t=k%6,a=rnd(0,6.28),r=(10 - t*1.1 + 10 - (t+1)*1.1)/2;add({x:Math.cos(a)*r,z:Math.sin(a)*r,y:-3.2+t*0.5,s:1,sh:.05,g:1})}
-[[-1,-3],[-1,0],[1,-1],[1,2.5],[-1,3.5],[0,6],[1,-3.5],[-1,-1.8]].forEach(([s,z],i)=>add({x:-20+[-3,0,3][i%3]+(s?s*1.15:0),z,y:2.8,s:1,sh:.42}));
-[[17.4,3.05],[22.6,3.05],[20,6.4],[17.2,1],[22.8,6.4]].forEach(([x,z])=>add({x,z,y:2.8,s:1,sh:.45}));
+// Orang di amfiteater
+for(let i=0;i<15;i++)add({t:'j',a:i*.8,r:12.5+(i%3)*.55,sp:(i%2?-1:1)*(.35+.07*(i%3)),g:1});
+// Orang di dalam Food Hall
+[[-10,-16],[-8,-16],[0,-16],[5,-16]].forEach(([x,z])=>add({x,z,y:1.2,s:1,sh:.45}));
 const bodies=new THREE.InstancedMesh(new THREE.CapsuleGeometry(.15,.5,4,12),mat('people',0xffffff),P.length),heads=new THREE.InstancedMesh(new THREE.SphereGeometry(.12,12,12),mat('people',0xffffff),P.length);
 P.forEach((p,i)=>{bodies.setColorAt(i,new THREE.Color(pal[i%3]));heads.setColorAt(i,new THREE.Color(skin[i%3]))});
 [bodies,heads].forEach(m=>{m.castShadow=true;m.frustumCulled=false;m.userData.key='people';pick.push(m);scene.add(m)});
 
+// Retakan beton (Self-healing)
 const mCrack=new THREE.MeshStandardMaterial({color:0x0f172a,transparent:true,opacity:0,roughness:1,emissive:0x22c55e,emissiveIntensity:0});
-[[-8,12.2,.2,2.5],[9,12.4,3,3.2],[13.5,4,1.4,2.8]].forEach(([x,z,a,len])=>{
-  const pts=[];let px=x,pz=z;for(let i=0;i<10;i++){pts.push(new THREE.Vector3(px,2.64,pz));px+=Math.cos(a)*.3+rnd(-.15,.15);pz+=Math.sin(a)*.3+rnd(-.15,.15);a+=rnd(-.8,.8)}
+[[-8,-10,.2,2.5],[9,-12,3,3.2]].forEach(([x,z,a,len])=>{
+  const pts=[];let px=x,pz=z;for(let i=0;i<10;i++){pts.push(new THREE.Vector3(px,-3.1,pz));px+=Math.cos(a)*.3+rnd(-.15,.15);pz+=Math.sin(a)*.3+rnd(-.15,.15);a+=rnd(-.8,.8)}
   const tube = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),32,0.06,8),mCrack);
   tube.userData.key='deck_crack'; pick.push(tube); scene.add(tube);
 });
 
+// Banjir
 const mWaterFlood = new THREE.MeshStandardMaterial({ color: C.water, emissive: 0x0f172a, transparent: true, opacity: 0.85, roughness: 0.2, metalness: 0.1, depthWrite: false });
-const wg=new THREE.PlaneGeometry(150,150,64,64);wg.rotateX(-Math.PI/2);
+const wg=new THREE.PlaneGeometry(200,200,64,64);wg.rotateX(-Math.PI/2);
 const flood=new THREE.Mesh(wg,mWaterFlood);flood.visible=false;scene.add(flood);
 const wpos=wg.attributes.position,wbx=Float32Array.from(wpos.array.filter((_,i)=>i%3===0)),wbz=Float32Array.from(wpos.array.filter((_,i)=>i%3===2));
 
+// Sampah
 const trashMat = new THREE.MeshStandardMaterial({color: 0x451a03, roughness: 0.9});
 const trashPlastic = new THREE.MeshStandardMaterial({color: 0x94a3b8, roughness: 0.1, metalness: 0.2, transparent: true, opacity: 0.8});
 const trashItems = new THREE.Group();
-for(let i=0; i<50; i++){
+for(let i=0; i<30; i++){
     let isPlastic = Math.random() > 0.5;
     let geo = isPlastic ? new THREE.PlaneGeometry(0.3, 0.4) : new THREE.BoxGeometry(0.2, 0.1, 0.3);
     let m = new THREE.Mesh(geo, isPlastic ? trashPlastic : trashMat);
-    let ang = rnd(0, Math.PI*2), rad = rnd(0, 9);
+    let ang = rnd(Math.PI, Math.PI*2), rad = rnd(0, 9);
     m.position.set(Math.cos(ang)*rad, -3.1 + rnd(0, 0.2), Math.sin(ang)*rad);
     m.rotation.set(rnd(0,3), rnd(0,3), rnd(0,3));
     m.userData.key = 'trash'; pick.push(m); trashItems.add(m);
 }
 scene.add(trashItems); trashItems.visible = false;
 
+// Aliran Partikel
 const flowMat = new THREE.MeshBasicMaterial({color: 0xffffff, transparent:true, opacity:0.9, blending:THREE.AdditiveBlending, depthTest:false});
 const flowGeo = new THREE.SphereGeometry(0.25, 8, 8);
 const flows = {
@@ -595,98 +625,97 @@ const flows = {
 };
 Object.values(flows).forEach(f => { f.count = 0; f.frustumCulled = false; f.renderOrder = 1000; scene.add(f); });
 
+// Udara (Pendinginan)
 const airGeo = new THREE.BufferGeometry();
 const airPos = new Float32Array(200 * 3); const airColors = new Float32Array(200 * 3);
 airGeo.setAttribute('position', new THREE.BufferAttribute(airPos, 3)); airGeo.setAttribute('color', new THREE.BufferAttribute(airColors, 3));
 const air = new THREE.Points(airGeo, new THREE.PointsMaterial({ size: 0.4, vertexColors: true, transparent: true, opacity: 0.9, depthWrite: false, blending: THREE.AdditiveBlending }));
 scene.add(air);
-const ax=[],ay=[],az=[],as=[];for(let i=0;i<200;i++){ax.push(rnd(26,36));ay.push(rnd(3.4,6.3));az.push(rnd(-2.8,2.8));as.push(rnd(2,3))}
+const ax=[],ay=[],az=[],as=[];for(let i=0;i<200;i++){ax.push(rnd(19,25));ay.push(rnd(2,7));az.push(rnd(-1,5));as.push(rnd(2,3))}
 const cRed=new THREE.Color(0xb91c1c),cBlue=new THREE.Color(0x1d4ed8),ct=new THREE.Color();
 
-const rainCount = 1500;
+// Hujan
+const rainCount = 2000;
 const rainGeo = new THREE.BufferGeometry();
 const rainPos = new Float32Array(rainCount * 2 * 3);
 rainGeo.setAttribute('position', new THREE.BufferAttribute(rainPos, 3));
 const rain = new THREE.LineSegments(rainGeo, new THREE.LineBasicMaterial({ color: 0x64748b, transparent: true, opacity: 0.5 }));
 scene.add(rain);
 const r_vel = [], r_x = [], r_y = [], r_z = [];
-for(let i=0;i<rainCount;i++){r_x.push(rnd(-50,50));r_y.push(rnd(-3,25));r_z.push(rnd(-40,40));r_vel.push(rnd(15,25))}
-const fl=(x,z)=>Math.abs(x)<30&&Math.abs(z)<25?2.6:-3.2;
+for(let i=0;i<rainCount;i++){r_x.push(rnd(-40,40));r_y.push(rnd(-3,25));r_z.push(rnd(-40,20));r_vel.push(rnd(15,25))}
 
 /* ---------- UI & DATA ---------- */
-const LB=[['Blue-green roof',[0,10,0]],['Food Hall',[-20,6,-10]],['Perpustakaan',[20,6,10]],['Lantai DFE +2,6 m',[0,3,-20]],['Undercroft',[0,1,-25],0],
- ['Amfiteater',[0,-2,0]],['Lubang drainase',[0,-3,0]],['Jalur A',[30,8,-10]],['Jalur B',[20,-5,0]],['Filtrasi',[45,-4,-10]],['Tangki A',[45,-2.8,-15],1],['Tangki B',[45,-2.8,-10],1],['Rockflow',[-5,-4,10],1],['Kolam Retensi',[45,-3,20]],['Drainase Kota',[55,-4,35]]]
- .map(([t,p,u])=>{const e=document.createElement('div');e.textContent=t;$('#labels').appendChild(e);return{e,p,u:u===1}});
+const LB=[
+ ['Green Roof',[0,8,-18]], ['Food Hall',[-5,1.5,-11]], ['Perpustakaan',[10,3,-8]], 
+ ['Lantai DFE +2,6 m',[0,5,-10]], ['Undercroft',[-10,1,-18],0], ['Amfiteater',[0,-1.5,8]],
+ ['Lubang drainase',[0,-3,0]], ['Jalur A',[-15,7,-14]], ['Jalur B',[-12,-3,0]],
+ ['Filtrasi',[-25,-2,-15]], ['Tangki A',[-25,-2,-20],1], ['Tangki B',[-25,-2,-15],1],
+ ['Beehive Cooling',[18,4,2]], ['Kolam Retensi',[-25,-3,20]]
+].map(([t,p,u])=>{const e=document.createElement('div');e.textContent=t;$('#labels').appendChild(e);return{e,p,u:u===1}});
 
 const balloon = $('#balloon'), bTitle = $('#bt'), bContent = $('#bc');
 let balloonText = "", typedChars = 0;
 
-const D0={w:-3.2,rain:0,whirl:0,pMode:'',air:0,wet:0,tankA:20,tankB:20,mud:0,crack:0,heal:0,inflow:0,trash:0,pond:0},OV=[60,45,70,0,-1,0];
+const D0={w:-3.2,rain:0,whirl:0,pMode:'',air:0,wet:0,tankA:20,tankB:20,mud:0,crack:0,heal:0,inflow:0,trash:0,pond:0},OV=[40,30,50,0,-1,-10];
 const MODES={
 flood:{n:'Banjir',i:'🌊',steps:[
- {t:'Kondisi kering',f:['deck','hall','lib','under','track','people'],c:[40,30,60,0,2,0],s:{w:-3.2,tankA:20,tankB:20},
-  n:'Ruang komunal berdiri kokoh dengan dek di elevasi +2,6 m. Undercroft dan amfiteater berfungsi penuh untuk aktivitas warga.'},
- {t:'Hujan & Luapan',f:['roof','bowl','track','swale'],c:[30,20,40,0,2,0],s:{w:-1.5,rain:1,inflow:1},
-  n:'Hujan ekstrem atau luapan sungai masuk ke tapak melalui saluran air permukaan (runoff swale). Amfiteater yang menjorok -3,2 m menjadi ruang pertama yang tergenang, mencegah air membanjiri permukiman warga.'},
- {t:'Air memenuhi Amfiteater',f:['bowl','under'],c:[35,20,35,0,-1,0],s:{w:1.0,rain:1,inflow:1},
-  n:'Air naik secara perlahan. Kolom-kolom ramping di undercroft membiarkan air mengalir bebas tanpa menghalangi, sehingga tidak menimbulkan tekanan yang mendorong air ke rumah tetangga.'},
- {t:'Mencapai BFE +2,0 m',f:['bfe','deck'],c:[45,15,35,15,2.2,5],s:{w:2.0,rain:1,inflow:1},
-  n:'Muka air berhenti di BFE +2,0 m. Freeboard 0,6 m (selisih ke dek +2,6 m) adalah batas aman. Dek tetap kering dan warga dapat berlindung di atas.'}]},
+ {t:'Kondisi kering',f:['deck','hall','lib','bowl','people'],c:[40,30,60,0,2,-10],s:{w:-3.2,tankA:20,tankB:20},
+  n:'Amfiteater dan ruang komunal berdiri kokoh. Undercroft berfungsi untuk aktivitas warga.'},
+ {t:'Hujan & Luapan',f:['roof','bowl','plants'],c:[30,20,40,0,2,0],s:{w:-1.5,rain:1,inflow:1},
+  n:'Hujan ekstrem masuk ke tapak. Amfiteater yang menjorok -3,2 m menjadi ruang pertama yang tergenang, mencegah air membanjiri permukiman.'},
+ {t:'Air memenuhi Amfiteater',f:['bowl'],c:[35,20,35,0,-1,5],s:{w:1.0,rain:1,inflow:1},
+  n:'Air naik secara perlahan. Struktur bangunan utama (Food Hall) tetap aman di atas DFE +2,6 m.'},
+ {t:'Mencapai BFE +2,0 m',f:['bfe','deck'],c:[45,15,35,15,2.2,0],s:{w:2.0,rain:1,inflow:1},
+  n:'Muka air berhenti di BFE +2,0 m. Freeboard 0,6 m adalah batas aman. Warga dapat berlindung di dek.'}]},
 drain:{n:'Drainase',i:'💧',steps:[
- {t:'Penyaringan Sampah',f:['drain','bowl','trashRack','dryingBed'],c:[15,15,15,0,-2,0],s:{w:-1.0,whirl:1,trash:1},
-  n:'Limpasan permukaan masuk melewati saringan sampah (trash rack). Sampah padat tertahan dan dipindahkan ke tempat pengeringan, sedangkan air mengalir ke amfiteater menuju Rockflow.'},
- {t:'Resapan Rockflow',f:['rock'],c:[25,20,25,0,-4,0],s:{w:-2.0,whirl:1,x:1,trash:1},
-  n:'Air meresap ke lapisan Rockflow (batu berongga) sebagai buffer/infiltrasi. Sedimen halus mengendap di dasar Rockflow.'},
- {t:'Filtrasi & Tangki B',f:['pipe_pathB','filter','tankB','tankA'],c:[50,25,20,38,-4,0],s:{w:-3.2,pMode:'pathB',tankB:60,x:1,trash:0},
-  n:'Amfiteater dikeringkan! Air dari Rockflow dipompa menuju unit Filtrasi Bertahap (pipa oranye). Setelah bersih, air disimpan ke dalam Tangki B.'},
- {t:'Overflow ke Retensi',f:['pipe_overflow','pond','tankB','tankA','filter'],c:[50,25,20,38,-4,10],s:{w:-3.2,pMode:'overflow',tankA:95,tankB:95,pond:1,x:1},
-  n:'Jika Tangki A dan B menyisakan sedikit kapasitas (untuk hujan dadakan), pipa overflow (ungu) menyalurkan air berlebih ke Kolam Retensi.'},
- {t:'Pelepasan ke Kota',f:['pipe_city','pond'],c:[55,20,30,45,-4,25],s:{w:-3.2,pMode:'city',tankA:95,tankB:95,pond:.5,x:1},
-  n:'Dari Kolam Retensi, air dilepas secara perlahan (dikontrol) melalui pipa outlet menuju Drainase Kota. Genangan surut tanpa membebani saluran kota secara mendadak.'}]},
+ {t:'Penyaringan Sampah',f:['bowl','trash'],c:[15,15,15,0,-2,0],s:{w:-1.0,whirl:1,trash:1},
+  n:'Limpasan permukaan masuk melewati saringan sampah. Sampah padat tertahan.'},
+ {t:'Resapan & Filtrasi',f:['pipe_pathB','filter','tankB','tankA'],c:[25,20,25,-25,-4,-15],s:{w:-3.2,pMode:'pathB',tankB:60,x:1,trash:0},
+  n:'Amfiteater dikeringkan! Air dipompa menuju unit Filtrasi (pipa oranye) sebelum masuk ke Tangki B.'},
+ {t:'Overflow ke Retensi',f:['pipe_overflow','pond','tankB','tankA','filter'],c:[50,25,20,-25,-4,20],s:{w:-3.2,pMode:'overflow',tankA:95,tankB:95,pond:1,x:1},
+  n:'Pipa overflow (ungu) menyalurkan air berlebih ke Kolam Retensi.'},
+ {t:'Pelepasan ke Kota',f:['pipe_city','pond'],c:[55,20,30,-10,-4,30],s:{w:-3.2,pMode:'city',tankA:95,tankB:95,pond:.5,x:1},
+  n:'Dari Kolam Retensi, air dilepas secara perlahan menuju Drainase Kota.'}]},
 rain:{n:'Panen Air Hujan',i:'🌧️',steps:[
- {t:'Hujan di Blue-Green Roof',f:['roof'],c:[45,30,30,20,5,-3],s:{w:-3.2,rain:1,tankA:15,tankB:20},
-  n:'Hujan jatuh ke atap hijau (Blue-Green Roof). Vegetasi menahan air, memperlambat limpasan, dan memberikan pendinginan evaporatif alami pada bangunan.'},
- {t:'Filtrasi & Tangki A',f:['pipe_pathA','filter','tankA'],c:[50,25,20,38,-4,-4],s:{w:-3.2,rain:1,pMode:'pathA',tankA:40,tankB:20,x:1},
-  n:'Air mengalir melalui talang, melewati First Flush Diverter, lalu menuju unit Filtrasi Bertahap (pipa biru) sebelum masuk ke Tangki A (Air Atap).'},
- {t:'Tangki Terisi',f:['tankA','pipe_pathA'],c:[50,25,20,38,-4,-4],s:{w:-3.2,rain:1,pMode:'pathA',tankA:85,tankB:20,x:1},
-  n:'Tangki A penampungan terisi. Air hujan disimpan untuk digunakan pada musim kemarau, mengurangi ketergantungan pada air PDAM.'},
- {t:'3 Cabang Distribusi',f:['pipe_bee','pipe_toilet','pipe_garden','tankA'],c:[45,30,20,20,-2,-5],s:{w:-3.2,pMode:'dist',tankA:80,tankB:20,x:1},
-  n:'Dari Tangki A, air didistribusikan melalui 3 cabang pipa: Oranye (Fasad Beehive), Cyan (Flush Toilet), dan Hijau Muda (Penyiraman Taman).'}]},
+ {t:'Hujan di Green Roof',f:['roof'],c:[45,30,30,0,8,-10],s:{w:-3.2,rain:1,tankA:15,tankB:20},
+  n:'Hujan jatuh ke atap hijau. Vegetasi menahan air dan memperlambat limpasan.'},
+ {t:'Filtrasi & Tangki A',f:['pipe_pathA','filter','tankA'],c:[50,25,20,-25,-4,-20],s:{w:-3.2,rain:1,pMode:'pathA',tankA:40,tankB:20,x:1},
+  n:'Air mengalir melalui talang (pipa biru) menuju Tangki A (Air Atap).'},
+ {t:'Tangki Terisi',f:['tankA','pipe_pathA'],c:[50,25,20,-25,-4,-20],s:{w:-3.2,rain:1,pMode:'pathA',tankA:85,tankB:20,x:1},
+  n:'Tangki A penampungan terisi. Air hujan disimpan untuk musim kemarau.'},
+ {t:'Cabang Distribusi',f:['pipe_bee','pipe_toilet','pipe_garden','tankA'],c:[45,30,20,-10,-2,0],s:{w:-3.2,pMode:'dist',tankA:80,tankB:20,x:1},
+  n:'Dari Tangki A, air didistribusikan ke Fasad Beehive, Toilet, dan Penyiraman Taman.'}]},
 cool:{n:'Beehive Cooling',i:'🐝',steps:[
- {t:'Aliran ke Fasad',f:['pipe_bee','facade','tankA'],c:[40,20,20,25,4,-5],s:{w:-3.2,pMode:'bee',tankA:75,x:1},
-  n:'Pipa Oranye menyalurkan air dari tangki menuju bagian atas Fasad Keramik. Bangunan transparan memperlihatkan aliran air naik ke lantai atas.'},
- {t:'Pembasahan Keramik',f:['facade','pipe_bee'],c:[45,15,15,25,4.5,0],s:{w:-3.2,pMode:'bee',wet:1,tankA:70,x:1},
-  n:'Air menetes membasahi panel keramik berpori (Hexagonal). Warna panel berubah menjadi lebih gelap saat basah. Air tertahan di pori-pori keramik.'},
- {t:'Penguapan & Pendinginan',f:['facade'],c:[38,10,10,25,4.5,0],s:{w:-3.2,air:1,wet:1,tankA:68,x:1},
-  n:'Udara panas (merah) masuk melewati pori keramik yang basah. Terjadi penguapan yang menyerap kalor, mengubah udara menjadi sejuk (biru). Efek pendinginan pasif tanpa AC.'},
- {t:'Udara Sejuk ke Ruangan',f:['lib','facade'],c:[35,20,20,21,4,-1],s:{w:-3.2,air:1,wet:1,tankA:66},
-  n:'Udara sejuk dialirkan masuk ke dalam Perpustakaan. Kenyamanan termal tercapai dengan konsumsi energi yang sangat rendah.'}]},
+ {t:'Aliran ke Fasad',f:['pipe_bee','facade','tankA'],c:[40,20,20,18,4,2],s:{w:-3.2,pMode:'bee',tankA:75,x:1},
+  n:'Pipa Oranye menyalurkan air dari tangki menuju bagian atas Fasad Keramik.'},
+ {t:'Pembasahan Keramik',f:['facade','pipe_bee'],c:[45,15,15,18,4,2],s:{w:-3.2,pMode:'bee',wet:1,tankA:70,x:1},
+  n:'Air menetes membasahi panel keramik berpori (Terracotta). Warna panel berubah menjadi lebih gelap saat basah.'},
+ {t:'Penguapan & Pendinginan',f:['facade'],c:[38,10,10,18,4,2],s:{w:-3.2,air:1,wet:1,tankA:68,x:1},
+  n:'Udara panas (merah) masuk melewati pori keramik yang basah. Terjadi penguapan yang menyerap kalor, mengubah udara menjadi sejuk (biru).'},
+ {t:'Udara Sejuk ke Ruangan',f:['lib','facade'],c:[35,20,20,10,3,-8],s:{w:-3.2,air:1,wet:1,tankA:66},
+  n:'Udara sejuk dialirkan masuk ke dalam Perpustakaan. Kenyamanan termal tanpa AC.'}]},
 post:{n:'Pascabanjir',i:'🧹',steps:[
- {t:'Pengeringan Sampah & Sedimen',f:['dryingBed','trash'],c:[-30,15,-20,-30,0,-20],s:{w:-2.6,mud:1,tankA:50,trash:0},
-  n:'Air surut. Sampah yang tertahan di saringan dipindahkan ke Tempat Pengeringan Sampah. Sedimen dari Rockflow dikeringkan di bed sebelahnya sebelum dibuang.'},
- {t:'Pusat Pendataan',f:['hall','lib','people'],c:[0,30,50,0,3,0],s:{w:-3.2,mud:.6,tankA:50},
-  n:'Food Hall yang tetap kering (+2,6 m) beralih fungsi menjadi posko pendataan kerusakan dan distribusi bantuan logistik bagi warga yang terdampak.'},
- {t:'Self-Healing Concrete',f:['deck','deck_crack'],c:[20,20,20,10,2.5,5],s:{w:-3.2,crack:1,heal:1,tankA:50},
-  n:'Siklus basah-kering memicu retak rambut pada dek. Bakteri di dalam beton (Self-Healing) aktif saat terkena air, memproduksi kalsit untuk menutup retakan secara mandiri.'},
- {t:'Pulih & Beroperasi',f:['hall','lib','roof','people','track'],c:[50,35,50,0,2,0],s:{w:-3.2,crack:0,heal:0,tankA:50},
-  n:'Ruang komunal kembali beroperasi sepenuhnya. Biaya pemeliharaan ditekan berkat beton self-healing, dan aktivitas sosial-ekonomi warga kembali pulih.'}]}};
+ {t:'Pengeringan Sampah',f:['trash'],c:[-30,15,-20,-30,0,-20],s:{w:-2.6,mud:1,tankA:50,trash:0},
+  n:'Air surut. Sampah yang tertahan dipindahkan ke Tempat Pengeringan Sampah.'},
+ {t:'Pusat Pendataan',f:['hall','lib','people'],c:[0,30,50,0,3,-10],s:{w:-3.2,mud:.6,tankA:50},
+  n:'Food Hall yang tetap kering beralih fungsi menjadi posko pendataan kerusakan dan distribusi bantuan logistik.'},
+ {t:'Self-Healing Concrete',f:['deck_crack'],c:[20,20,20,10,2.5,5],s:{w:-3.2,crack:1,heal:1,tankA:50},
+  n:'Siklus basah-kering memicu retak rambut pada dek. Bakteri di dalam beton aktif saat terkena air, memproduksi kalsit untuk menutup retakan.'},
+ {t:'Pulih & Beroperasi',f:['hall','lib','roof','people','bowl'],c:[50,35,50,0,2,0],s:{w:-3.2,crack:0,heal:0,tankA:50},
+  n:'Ruang komunal kembali beroperasi sepenuhnya. Biaya pemeliharaan ditekan berkat beton self-healing.'}]}};
 
 const INFO={
- under:['Undercroft','Ruang terbuka setinggi 2 m di bawah dek beton.','Hari biasa dipakai berdagang. Saat banjir, air mengalir bebas di sela kolom (Dry Floodproofing).',[-4,15,40,0,1,8]],
- bowl:['Amfiteater','Cekungan melingkar 6 undakan.','Panggung saat kering; retensi pertama saat banjir.',[20,20,25,0,-2,0]],
- track:['Jogging track','Cincin lintasan lari.','Sirkulasi olahraga harian warga.',[20,15,25,0,0,0]],
- hall:['Food Hall','Paviliun kayu dengan atap terekspos.','Pasar kuliner; saat banjir menjadi dapur umum.',[-30,20,35,-20,4,-2]],
- lib:['Perpustakaan','Paviliun kayu, rak buku, dan Fasad Beehive.','Ruang belajar; dingin berkat pendinginan evaporatif.',[30,20,35,20,4,-2]],
- roof:['Blue-green roof','Atap miring berlapis vegetasi.','Menahan limpasan hujan, mendinginkan bangunan.',[40,25,20,20,6,-3]],
- filter:['Filtrasi','Unit pengolahan air bertahap.','Menyaring sedimen dan menetralkan bakteri.',[38,15,0,38,-4,-2],1],
- tankA:['Tangki A','Silinder penampung air atap.','Menyimpan air hujan bersih.',[45,10,-4,38,-4.7,-4],1],
- tankB:['Tangki B','Silinder penampung limpasan.','Menyimpan air limpasan yang telah difiltrasi.',[45,10,0,38,-4.7,0],1],
- pond:['Kolam Retensi','Kolam penampung cadangan.','Menampung overflow, dilepas perlahan ke kota.',[45,10,15,38,-4,15],1],
- rock:['Rockflow','Lapisan batu berongga.','Penyangga resapan: memotong puncak aliran.',[20,15,25,0,-5,0],1],
- facade:['Fasad Beehive','Hexagon keramik porous.','Dibasahi air; penguapan mendinginkan udara.',[45,15,10,25.4,4.5,0]],
- dryingBed:['Pengeringan','Bak beton terbuka untuk sampah & sedimen.','Dijemur agar kering sebelum diangkut.',[-25,2,-20]]};
+ bowl:['Amfiteater','Cekungan melingkar berundak.','Panggung saat kering; retensi pertama saat banjir.',[20,20,25,0,-2,0]],
+ hall:['Food Hall','Paviliun kayu/bata dengan interior.','Pasar kuliner; saat banjir menjadi dapur umum.',[-30,20,35,-20,2,-10]],
+ lib:['Perpustakaan','Ruang baca di lantai atas.','Ruang belajar; dingin berkat pendinginan evaporatif.',[30,20,35,10,4,-10]],
+ roof:['Green Roof','Atap berlapis tanah dan vegetasi.','Menahan limpasan hujan, mendinginkan bangunan.',[40,25,20,0,8,-10]],
+ facade:['Beehive Cooling','Hexagon keramik porous (Terracotta).','Dibasahi air; penguapan mendinginkan udara.',[45,15,10,18,4,2]],
+ filter:['Filtrasi','Unit pengolahan air bertahap.','Menyaring sedimen dan menetralkan bakteri.',[38,15,0,-25,-4,-15],1],
+ tankA:['Tangki A','Silinder penampung air atap.','Menyimpan air hujan bersih.',[45,10,-4,-25,-4.7,-20],1],
+ tankB:['Tangki B','Silinder penampung limpasan.','Menyimpan air limpasan yang telah difiltrasi.',[45,10,0,-25,-4.7,-15],1],
+ pond:['Kolam Retensi','Kolam penampung cadangan.','Menampung overflow, dilepas perlahan ke kota.',[45,10,15,-25,-4,20],1]};
 
-let T={...D0},mode=null,idx=0,playing=true,tm=0,follow=true,time=0,dt=0,focus=new Set(),hoverKey=null,lastWet=0; /* PERBAIKAN #2: lastWet dideklarasikan */
+let T={...D0},mode=null,idx=0,playing=true,tm=0,follow=true,time=0,dt=0,focus=new Set(),hoverKey=null,lastWet=0;
 const V={w:-3.2,wet:0,tankA:20,tankB:20,xray:0,mud:0,crack:0,heal:0,inflow:0,trash:0,pond:0};
 const gp=new THREE.Vector3(...OV.slice(0,3)),gt=new THREE.Vector3(...OV.slice(3));
 camera.position.copy(gp);controls.target.copy(gt);
@@ -728,7 +757,7 @@ cv.addEventListener('pointerup',e=>{if(Math.hypot(e.clientX-dx0,e.clientY-dy0)>5
 function resize(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();}
 addEventListener('resize',resize);resize();
 
-const clock=new THREE.Clock(),tv=new THREE.Vector3(),grassB=new THREE.Color(C.moss),mudC=new THREE.Color(0x292524),bowlB=new THREE.Color(C.terra),bowlM=new THREE.Color(0x7c2d12);
+const clock=new THREE.Clock(),tv=new THREE.Vector3(),grassB=new THREE.Color(C.moss),mudC=new THREE.Color(0x292524);
 renderer.setAnimationLoop(()=>{
  dt=Math.min(clock.getDelta(),.05);time+=dt;
  if(mode&&playing){const n=MODES[mode].steps.length;tm+=dt*1000;if(tm>=STEP_MS){if(idx<n-1)goStep(idx+1,false);else{playing=false;tm=STEP_MS;$('#pp').textContent='▶ Ulang'}}}
@@ -742,19 +771,12 @@ renderer.setAnimationLoop(()=>{
  const isXray = xr.checked || T.pMode !== '';
  V.xray = mv(V.xray, isXray ? 1 : 0, 3*dt);
 
- if(V.xray > 0.5){
-    mGrass.depthWrite = false;
- } else {
-    mGrass.depthWrite = true;
- }
-
+ if(V.xray > 0.5){ mGrass.depthWrite = false; } else { mGrass.depthWrite = true; }
  mGrass.userData.b=1-.88*V.xray;
  mGrass.color.copy(grassB).lerp(mudC,V.mud*.8);
 
  let activeCurve = null;
  for (const [key, group] of Object.entries(pipeGroups)) { group.visible = false; }
-
- /* PERBAIKAN #5: reset SEMUA flows dulu agar tidak ada partikel "nyangkut" */
  Object.values(flows).forEach(f => { f.count = 0; });
 
  if (T.pMode === 'pathA') { pipeGroups['pipe_pathA'].visible = true; activeCurve = cvA; flows.pathA.count=20; }
@@ -784,7 +806,7 @@ renderer.setAnimationLoop(()=>{
    const g=G[k];
    let targetOpacity = (!focus.size||focus.has(k)||KEEP.has(k)) ? 1 : 0.3;
    if (T.pMode) {
-     if (k.includes('pipe_') || k === 'tank' || k === 'rock' || k === 'filter' || k === 'pond' || k === 'tankA' || k === 'tankB') targetOpacity = 1;
+     if (k.includes('pipe_') || k === 'tank' || k === 'filter' || k === 'pond' || k === 'tankA' || k === 'tankB') targetOpacity = 1;
      else targetOpacity = 0.15;
    }
    if (['drain','rain','cool'].includes(mode) && ['filter','tankA','tankB','pond'].includes(k)) targetOpacity = 1;
@@ -820,9 +842,8 @@ renderer.setAnimationLoop(()=>{
     wpos.needsUpdate=true;
  }
 
- /* PERBAIKAN #4: ganti setHex() yang tidak ada dengan perubahan warna mFacade */
  if(Math.abs(V.wet - lastWet) > 0.002){
-    mFacade.color.setHex(V.wet > 0.5 ? 0x78350f : 0xb45309);
+    mTerra.color.setHex(V.wet > 0.5 ? 0x78350f : C.terra);
     lastWet = V.wet;
  }
 
@@ -836,7 +857,7 @@ renderer.setAnimationLoop(()=>{
  if(T.rain){
    for(let i=0;i<rainCount;i++){
      r_y[i] -= r_vel[i]*dt;
-     if(r_y[i] < -3.2) { r_y[i] = rnd(20,25); r_x[i]=rnd(-50,50); r_z[i]=rnd(-40,40); }
+     if(r_y[i] < -3.2) { r_y[i] = rnd(20,25); r_x[i]=rnd(-40,40); r_z[i]=rnd(-40,20); }
      const idx2 = i*6;
      rainPos[idx2] = r_x[i]; rainPos[idx2+1] = r_y[i]; rainPos[idx2+2] = r_z[i];
      rainPos[idx2+3] = r_x[i]; rainPos[idx2+4] = r_y[i]-1.5; rainPos[idx2+5] = r_z[i];
@@ -847,9 +868,9 @@ renderer.setAnimationLoop(()=>{
  if(T.air){
    for(let i=0;i<200;i++){
      ax[i] -= as[i]*dt;
-     if(ax[i] < 21) { ax[i] = rnd(31,36); ay[i]=rnd(3.4,6.3); az[i]=rnd(-2.8,2.8); }
+     if(ax[i] < 19) { ax[i] = rnd(23,26); ay[i]=rnd(2,7); az[i]=rnd(-1,5); }
      airPos[i*3] = ax[i]; airPos[i*3+1] = ay[i]+Math.sin(time*3+i)*.06; airPos[i*3+2] = az[i];
-     let b = Math.max(0,Math.min(1,(26-ax[i])/3));
+     let b = Math.max(0,Math.min(1,(23-ax[i])/2));
      ct.copy(cRed).lerp(cBlue, b);
      airColors[i*3]=ct.r; airColors[i*3+1]=ct.g; airColors[i*3+2]=ct.b;
    }
