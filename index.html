@@ -4,705 +4,736 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Ruang Komunal Terangkat Adaptif Banjir — Denpasar</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-/* ========== RESET & BASE ========== */
+:root{--ink:#0c1a1f;--ink2:#14292f;--line:#2a444e;--txt:#e6eef0;--mute:#8fa6ad;--a:#4fb3d9;--b:#e0753f;--g:#8fb36a}
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;background:#0f172a;color:#e2e8f0}
+html,body{height:100%;overflow:hidden;background:var(--ink);color:var(--txt);font:400 16px/1.55 'Instrument Sans',system-ui,sans-serif}
+h1,h2,h3{font-family:'Bricolage Grotesque','Instrument Sans',system-ui,sans-serif;line-height:1.04;letter-spacing:-.025em;font-weight:700}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:2px solid var(--a);outline-offset:3px}
 
-/* ========== INTRO SLIDER ========== */
-#intro-container{
-  position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;
-  background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#0f172a 100%);
-  transition:opacity 1s ease, visibility 1s ease;
-}
-#intro-container.hidden{opacity:0;visibility:hidden;pointer-events:none}
+/* ---------- SLIDES ---------- */
+#deck{position:fixed;inset:0;z-index:30;background:var(--ink);transition:opacity .6s,visibility .6s}
+#deck.hide{opacity:0;visibility:hidden;pointer-events:none}
+.slide{position:absolute;inset:0;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:5vw;align-items:center;padding:8vh 7vw 14vh;opacity:0;visibility:hidden;transition:opacity .5s,visibility .5s;overflow:auto}
+.slide.on{opacity:1;visibility:visible}
+.slide h1{font-size:clamp(2.4rem,5.6vw,5.4rem)}
+.slide h2{font-size:clamp(2rem,4vw,3.6rem);margin-bottom:1.6rem}
+.lead{color:var(--mute);font-size:1.15rem;max-width:34em;margin-top:1.6rem}
+.params{display:flex;gap:2.4rem;margin-top:2.6rem}
+.params div{border-left:3px solid var(--a);padding-left:1rem}
+.params div+div{border-color:var(--b)}
+.params b{display:block;font:700 2.2rem/1 'Bricolage Grotesque',sans-serif}
+.params span{color:var(--mute);font-size:.9rem}
+.facts{display:grid;gap:1.6rem}
+.fact{padding-bottom:1.4rem;border-bottom:1px solid var(--line)}
+.fact b{font:700 clamp(2.4rem,4.5vw,4rem)/1 'Bricolage Grotesque',sans-serif;display:block}
+.fact p{color:var(--mute);margin-top:.3rem}
+.bar{height:8px;background:var(--ink2);margin-top:.8rem;border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--b)}
+.sol{display:grid;gap:1.5rem}
+.sol div{padding-left:1.2rem;border-left:3px solid var(--line)}
+.sol div:nth-child(1){border-color:var(--a)}.sol div:nth-child(2){border-color:var(--g)}.sol div:nth-child(3){border-color:var(--b)}
+.sol h3{font-size:1.6rem;margin-bottom:.25rem}
+.sol p{color:var(--mute);max-width:32em}
+.legend{display:grid;gap:.7rem;margin:1.2rem 0 2rem;color:var(--mute)}
+.legend span{display:flex;align-items:center;gap:.7rem}
+.legend i{width:26px;height:5px;border-radius:3px;flex:none}
+.cta{background:var(--b);color:#1a0d06;border:0;border-radius:999px;padding:.95rem 1.8rem;font-weight:600;font-size:1.05rem;transition:transform .2s,background .2s}
+.cta:hover{background:#f08a55;transform:translateY(-2px)}
+.slide svg{width:100%;max-height:72vh}
+#nav{position:fixed;left:7vw;right:7vw;bottom:5vh;z-index:40;display:flex;align-items:center;justify-content:space-between}
+#dots{display:flex;gap:.6rem}
+#dots button{width:34px;height:4px;border:0;border-radius:2px;background:var(--line)}
+#dots button.on{background:var(--a)}
+.arrows{display:flex;gap:.6rem}
+.arrows button{background:none;border:1px solid var(--line);border-radius:50%;width:44px;height:44px;font-size:1.1rem}
+.arrows button:hover{border-color:var(--a)}
+.arrows button[disabled]{opacity:.25;pointer-events:none}
+#deck.last #nxt{visibility:hidden}
 
-.slide{
-  position:absolute;inset:0;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;padding:60px 40px;
-  opacity:0;visibility:hidden;transition:opacity 0.8s ease, visibility 0.8s ease;
-  text-align:center;z-index:2;
-}
-.slide.active{opacity:1;visibility:visible}
+/* ---------- SIM UI ---------- */
+#stage{position:fixed;inset:0;z-index:1}
+#stage canvas{display:block}
+#panel,#hud{position:fixed;z-index:10;background:rgba(12,26,31,.82);backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:14px;padding:1.1rem;display:none}
+body.sim #panel,body.sim #hud{display:block}
+#panel{left:16px;top:16px;width:236px}
+#panel h3{font-size:1.15rem;margin-bottom:.15rem}
+#panel small{color:var(--mute);display:block;margin-bottom:.9rem}
+.sb{display:block;width:100%;text-align:left;background:var(--ink2);border:1px solid var(--line);border-radius:10px;padding:.65rem .85rem;margin-bottom:.5rem;transition:border-color .2s,background .2s}
+.sb:hover{border-color:var(--mute)}
+.sb i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:.6rem;vertical-align:-1px}
+.sb.on{border-color:currentColor;background:#1b3540}
+#fl{color:var(--a)}#ja{color:#6cc4e8}#jb{color:var(--b)}
+.sb span{color:var(--txt)}
+.back{background:none;border:0;color:var(--mute);text-decoration:underline;padding:0;font-size:.9rem;margin-top:10px;}
+#hud{right:16px;top:16px;min-width:230px;text-align:right}
+#hud small{color:var(--mute)}
+#lv{font:700 2.6rem/1.1 'Bricolage Grotesque',sans-serif;color:var(--a)}
+#st{margin-top:.2rem;font-weight:600}
+#dk{margin-top:.5rem;color:var(--mute);font-size:.9rem}
+#dk b{color:var(--g)}
 
-.slide .label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:4px;color:#38bdf8;margin-bottom:24px;opacity:0;transform:translateY(20px);animation:slideUp 0.8s 0.2s forwards}
-.slide .title{font-size:clamp(28px,4vw,48px);font-weight:800;line-height:1.2;letter-spacing:-0.02em;max-width:900px;margin-bottom:20px;opacity:0;transform:translateY(20px);animation:slideUp 0.8s 0.4s forwards}
-.slide .title .accent{color:#38bdf8}
-.slide .subtitle{font-size:clamp(14px,1.5vw,18px);font-weight:400;line-height:1.7;color:#94a3b8;max-width:750px;margin-bottom:40px;opacity:0;transform:translateY(20px);animation:slideUp 0.8s 0.6s forwards}
-.slide .visual{margin-top:10px;opacity:0;transform:translateY(20px);animation:slideUp 0.8s 0.8s forwards;max-width:900px;width:100%}
-@keyframes slideUp{to{opacity:1;transform:translateY(0)}}
-
-.card-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;text-align:left}
-.card{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);padding:24px;border-radius:12px;backdrop-filter:blur(10px)}
-.card h3{font-size:16px;color:#38bdf8;margin-bottom:12px;display:flex;align-items:center;gap:8px}
-.card p{font-size:13px;color:#cbd5e1;line-height:1.6}
-
-.nav-dots{position:absolute;bottom:40px;left:50%;transform:translateX(-50%);display:flex;gap:12px;z-index:10}
-.nav-dots .dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.2);cursor:pointer;transition:all 0.3s ease}
-.nav-dots .dot.active{background:#38bdf8;transform:scale(1.3)}
-.nav-buttons{position:absolute;bottom:40px;right:40px;display:flex;gap:12px;z-index:10}
-.nav-buttons button{padding:12px 28px;border:1px solid rgba(255,255,255,0.15);border-radius:8px;background:rgba(255,255,255,0.05);color:#e2e8f0;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;backdrop-filter:blur(10px);transition:all 0.3s ease;}
-.nav-buttons button:hover{background:rgba(56,189,248,0.15);border-color:#38bdf8;color:#38bdf8}
-.nav-buttons button.primary{background:#2563eb;border-color:#2563eb;color:#fff}
-.nav-buttons button.primary:hover{background:#1d4ed8}
-
-/* ========== SIMULATION UI ========== */
-#sim-container{
-  position:fixed;inset:0;z-index:1;display:none;
-  font-family:'Inter',sans-serif;color:#0f172a;
-  overflow:hidden;background:transparent;pointer-events:none;
-}
-#panel, #info, #hud {pointer-events:auto;}
-#sim-container.active{display:block}
-
-.sim-card{background:rgba(255,255,255,0.92);backdrop-filter:blur(16px);border:1px solid rgba(0,0,0,0.1);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.15)}
-#panel{position:fixed;left:20px;top:20px;width:340px;max-height:calc(100% - 40px);display:flex;flex-direction:column;z-index:5}
-#ph{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;font-weight:800;border-bottom:1px solid rgba(0,0,0,0.1);font-size:13px;letter-spacing:0.5px}
-#pb{overflow-y:auto;padding:16px}
-h1{font-size:16px;line-height:1.3;margin:0 0 4px;font-weight:700}
-.sub{margin:0 0 16px;font-size:12px;color:#64748b}
-.std{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
-.std span{background:#eff6ff;color:#2563eb;border-radius:4px;padding:4px 8px;font-size:11px;font-weight:600;border:1px solid #bfdbfe}
-#modes{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
-#modes button{text-align:left;padding:10px;font-size:12px;background:#f8fafc;border:1px solid rgba(0,0,0,0.1);border-radius:6px;cursor:pointer;transition:all .2s;font-family:inherit;font-weight:600;color:#0f172a}
-#modes button.on{border-color:#2563eb;background:#eff6ff;color:#2563eb;box-shadow:0 0 0 1px #2563eb}
-#reset{width:100%;margin-bottom:16px;background:#fef2f2;color:#dc2626;border-color:#fecaca;border-radius:6px;padding:8px 12px;font-family:inherit;font-weight:600;cursor:pointer;border:1px solid #fecaca}
-#step{background:#fff;border-radius:8px;padding:14px;margin-bottom:16px;border:1px solid rgba(0,0,0,0.1)}#step[hidden]{display:none}
-#sc{font-size:10px;font-weight:800;color:#2563eb;text-transform:uppercase;letter-spacing:1px}
-#st{margin:4px 0 8px;font-size:15px;font-weight:700}
-#sn{margin:0 0 12px;font-size:12px;line-height:1.5;color:#334155;max-height:15vh;overflow:auto}
-.bar{height:4px;background:#f1f5f9;border-radius:2px;overflow:hidden;margin-bottom:12px}.bar i{display:block;height:100%;width:0;background:#2563eb;transition:width 0.1s linear}
-.ctl{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.ctl button{padding:6px 2px;font-size:11px;font-family:inherit;font-weight:600;cursor:pointer;border-radius:6px;border:1px solid rgba(0,0,0,0.1);background:#f8fafc;color:#0f172a}
-.ctl button#nx{background:#2563eb;color:#fff;border-color:#2563eb;font-weight:700}
-.tg{display:flex;gap:16px;font-size:12px;font-weight:600;margin:12px 0;color:#475569}
-.tg label{display:flex;align-items:center;gap:6px;cursor:pointer}
-#legend{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;font-size:11px;color:#475569}
-#legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
-
-#hud{position:fixed;right:20px;top:20px;padding:12px 16px;font-size:12px;z-index:4;min-width:220px}
-#hud div{display:flex;justify-content:space-between;gap:16px;padding:4px 0;border-bottom:1px solid rgba(0,0,0,0.05)}
-#hud div:last-child{border-bottom:none}
-#hud b{font-weight:800;color:#0f172a}
-#hud span{color:#64748b;font-weight:600}
-
-#balloon{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);width:600px;max-width:90vw;padding:16px 24px;background:rgba(255,255,255,0.95);backdrop-filter:blur(10px);border:1px solid rgba(0,0,0,0.1);border-radius:12px;box-shadow:0 20px 40px rgba(0,0,0,0.15);z-index:10;pointer-events:none;opacity:0;transition:opacity 0.5s;font-size:13px;line-height:1.6;color:#0f172a;text-align:center}
-#balloon .t{display:block;margin-bottom:6px;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#2563eb;font-weight:800}
-
-#info{position:fixed;right:20px;bottom:20px;width:320px;max-height:50vh;overflow-y:auto;padding:16px;z-index:4;font-size:13px;line-height:1.6;display:none;}
-#info[hidden]{display:none}#info h4{margin:0 0 8px;font-size:15px;padding-right:24px;color:#0f172a}
-#info h5{margin:12px 0 4px;font-size:10px;text-transform:uppercase;color:#2563eb;letter-spacing:1px;font-weight:800}#info p{margin:0;color:#334155}
-#info button{position:absolute;right:12px;top:12px;padding:4px 8px;background:#f1f5f9;border-radius:4px;color:#0f172a;cursor:pointer;border:none;font-weight:600}
-
-#labels{position:fixed;inset:0;pointer-events:none;z-index:2;overflow:hidden}
-#labels div{position:absolute;left:0;top:0;font-size:10px;font-weight:700;background:rgba(255,255,255,0.9);color:#0f172a;border-radius:4px;padding:3px 8px;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,0.1);border:1px solid rgba(0,0,0,0.1)}
+.mb{display:block;width:100%;text-align:left;background:var(--ink2);border:1px solid var(--line);border-radius:10px;padding:.62rem .85rem;margin-bottom:.45rem;transition:border-color .2s,background .2s}
+.mb:hover{border-color:var(--a);background:#1b3540}
+#ctl{display:none}
+#ctl small{margin-bottom:.35rem}
+.pgb{height:6px;background:var(--ink2);border-radius:3px;overflow:hidden;margin:.2rem 0 .7rem}
+.pgb i{display:block;height:100%;width:0;background:var(--a)}
+.cg{display:grid;grid-template-columns:1fr 1fr;gap:.45rem}
+.cg button{background:var(--ink2);border:1px solid var(--line);border-radius:9px;padding:.5rem .3rem;font-size:.86rem}
+.cg button:hover{border-color:var(--a)}
+.cg button:disabled{opacity:.35;pointer-events:none}
+#bubble{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:12;width:min(640px,calc(100vw - 32px));background:rgba(12,26,31,.93);backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:18px;padding:1rem 1.3rem 1.1rem;display:none}
+body.sim #bubble.show{display:block}
+#bubble::after{content:'';position:absolute;left:50%;bottom:-9px;width:16px;height:16px;background:#0c1a1f;border:1px solid var(--line);border-top:0;border-left:0;transform:translateX(-50%) rotate(45deg)}
+#bubble.pop{animation:pop .45s}
+@keyframes pop{from{opacity:0;transform:translateX(-50%) translateY(12px)}to{opacity:1;transform:translateX(-50%)}}
+#bs{color:var(--a);font-size:.82rem;font-weight:600}
+#bt{font:700 1.4rem/1.15 'Bricolage Grotesque',sans-serif;margin:.1rem 0 .3rem}
+#bx{color:var(--txt)}
+@media(max-width:800px){.slide{grid-template-columns:1fr;gap:2rem;align-content:start;padding-top:7vh}#panel{width:200px;padding:.8rem}#hud{min-width:0}#lv{font-size:1.8rem}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
-<script type="importmap">
-{
-  "imports": {
-    "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
-    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
-  }
-}
-</script>
 </head>
 <body>
 
-<!-- ==================== INTRO SLIDER ==================== -->
-<div id="intro-container">
-  <div class="slide active">
-    <div class="label">Regenerative Architecture & SETS</div>
-    <h1 class="title">Ruang Komunal<br><span class="accent">Terangkat Adaptif Banjir</span></h1>
-    <p class="subtitle">Integrasi Pengelolaan Air Hujan, Ruang Aktivitas Sosial-Ekonomi, dan Titik Evakuasi Vertikal Sementara di Denpasar.</p>
-    <div class="visual" style="display:flex;gap:16px;justify-content:center;">
-      <div class="card" style="text-align:center;padding:16px 24px;"><b>BFE +2,0 m</b></div>
-      <div class="card" style="text-align:center;padding:16px 24px;"><b>DFE +2,6 m</b></div>
-      <div class="card" style="text-align:center;padding:16px 24px;"><b>Freeboard 0,6 m</b></div>
+<!-- ================= SLIDES ================= -->
+<div id="deck">
+  <section class="slide on">
+    <div>
+      <h1>Ruang Komunal Terangkat Adaptif Banjir</h1>
+      <p class="lead">Denpasar, Bali. Dek publik, food hall, dan perpustakaan yang diangkat di atas muka air banjir, dengan amfiteater yang boleh tergenang.</p>
+      <div class="params"><div><b>+2,0 m</b><span>BFE · Base Flood Elevation</span></div><div><b>+2,6 m</b><span>DFE · Design Flood Elevation</span></div></div>
     </div>
-  </div>
+    <svg viewBox="0 0 360 430" role="img" aria-label="Diagram ketinggian BFE dan DFE">
+      <rect y="380" width="360" height="50" fill="#173039"/>
+      <rect y="280" width="360" height="100" fill="rgba(79,179,217,.2)"/>
+      <line x1="0" x2="360" y1="280" y2="280" stroke="#4fb3d9" stroke-width="2" stroke-dasharray="7 5"/>
+      <g fill="#cfd5d3"><rect x="130" y="250" width="220" height="9"/><rect x="150" y="259" width="7" height="121"/><rect x="210" y="259" width="7" height="121"/><rect x="270" y="259" width="7" height="121"/><rect x="330" y="259" width="7" height="121"/></g>
+      <rect x="160" y="70" width="170" height="180" fill="rgba(79,179,217,.1)" stroke="#6fb9d0" stroke-width="2"/>
+      <rect x="152" y="60" width="186" height="10" fill="#8fb36a"/>
+      <rect x="330" y="70" width="14" height="180" fill="#d2693f" opacity=".85"/>
+      <g font-family="Instrument Sans,sans-serif" font-size="14">
+        <text x="6" y="244" fill="#e0753f" font-weight="600">DFE +2,6 m</text><line x1="6" x2="130" y1="254" y2="254" stroke="#e0753f" stroke-width="2"/>
+        <text x="6" y="272" fill="#4fb3d9" font-weight="600">BFE +2,0 m</text>
+        <text x="6" y="402" fill="#8fa6ad">±0,0 m · tanah</text>
+        <text x="36" y="335" fill="#8fa6ad" font-size="12">freeboard 0,6 m</text>
+      </g>
+      <path d="M26 256V278M21 262l5-6 5 6M21 272l5 6 5-6" stroke="#8fa6ad" fill="none" stroke-width="1.5"/>
+    </svg>
+  </section>
 
-  <div class="slide">
-    <div class="label">The Issue</div>
-    <h1 class="title">Banjir & Keterbatasan <span class="accent">Ruang Hijau</span></h1>
-    <p class="subtitle">Lahan terbangun 70%, RTH hanya 3,2%. Banjir September 2025 menewaskan 17-18 orang, 474 ruko rusak, dan 81 titik banjir di Denpasar.</p>
-    <div class="visual">
-      <div class="card-grid">
-        <div class="card"><h3>Masalah Sosial</h3><p>Ruang pemulihan dan evakuasi masih bersifat improvisasi (memakai sekolah/posko) yang tidak dirancang khusus.</p></div>
-        <div class="card"><h3>Masalah Teknologis</h3><p>Penanganan berskala besar (rekayasa sungai/drainase) belum terintegrasi dengan ruang aktivitas warga.</p></div>
-        <div class="card"><h3>Masalah Ekologis</h3><p>Lahan terbuka sangat terbatas, sehingga satu bidang lahan harus berfungsi ganda (retensi & komunal).</p></div>
+  <section class="slide">
+    <div>
+      <h2>Kota yang mengeras, air yang kehilangan tempat</h2>
+      <p class="lead">Hujan deras meluap di Denpasar karena hampir seluruh tanah tertutup bangunan dan perkerasan. Ruang terbuka hijau yang bisa menyerap air nyaris tidak ada.</p>
+    </div>
+    <div class="facts">
+      <div class="fact"><b style="color:var(--a)">Banjir</b><p>Genangan berulang di kawasan padat, saat hujan lebat dan drainase penuh.</p></div>
+      <div class="fact"><b>70%</b><p>Lahan terbangun</p><div class="bar"><i style="width:70%"></i></div></div>
+      <div class="fact"><b>3,2%</b><p>Ruang terbuka hijau (RTH)</p><div class="bar"><i style="width:3.2%;background:var(--g)"></i></div></div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div>
+      <h2>Bangunan yang berdamai dengan air</h2>
+      <p class="lead">Alih-alih melawan banjir, ruang komunal ini membiarkan air lewat di bawah dan menjaga kegiatan publik tetap kering di atas.</p>
+    </div>
+    <div class="sol">
+      <div><h3>Elevated Building</h3><p>Dek dan bangunan berada di +2,6 m (DFE), 0,6 m di atas muka air banjir. Akses lewat ramp landai.</p></div>
+      <div><h3>Open Undercroft</h3><p>Kolong terbuka di bawah dek. Kolom ramping membiarkan air mengalir tanpa tertahan.</p></div>
+      <div><h3>Zona Basah / Kering</h3><p>Amfiteater dan kolong adalah zona basah yang boleh tergenang. Food hall dan perpustakaan di dek adalah zona kering.</p></div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div>
+      <h2>Penerapan: air, atap, dan udara</h2>
+      <div class="legend">
+        <span><i style="background:var(--a)"></i>Jalur A: atap → pipa biru → Tangki A</span>
+        <span><i style="background:var(--b)"></i>Jalur B: amfiteater → Rockflow → Tangki B</span>
+        <span><i style="background:linear-gradient(90deg,var(--g) 33%,#5a4030 33% 66%,var(--a) 66%)"></i>Blue-green roof: vegetasi, tanah, lapisan air</span>
+        <span><i style="background:#d2693f"></i>Beehive cooling: fasad pipa terakota berpori</span>
       </div>
+      <button class="cta" id="start">Mulai Simulasi 3D</button>
     </div>
-  </div>
+    <svg viewBox="0 0 540 400" role="img" aria-label="Diagram penerapan jalur air A dan B">
+      <defs><pattern id="hex" width="8" height="8" patternUnits="userSpaceOnUse"><circle cx="4" cy="4" r="3" fill="#6b2f19"/><circle cx="4" cy="4" r="3" fill="none" stroke="#d2693f" stroke-width="1.4"/></pattern></defs>
+      <rect y="300" width="540" height="100" fill="#173039"/>
+      <path d="M20 300V308H42V316H64V324H86V332H134V324H156V316H178V308H200V300Z" fill="#0c1a1f"/>
+      <line x1="0" x2="540" y1="220" y2="220" stroke="#4fb3d9" stroke-dasharray="6 5" opacity=".7"/>
+      <g fill="#cfd5d3"><rect x="270" y="196" width="250" height="8"/><rect x="290" y="204" width="6" height="96"/><rect x="360" y="204" width="6" height="96"/><rect x="430" y="204" width="6" height="96"/><rect x="500" y="204" width="6" height="96"/></g>
+      <rect x="290" y="52" width="190" height="144" fill="rgba(79,179,217,.08)" stroke="#6fb9d0" stroke-width="1.5"/>
+      <rect x="284" y="40" width="202" height="4" fill="#8fb36a"/><rect x="284" y="44" width="202" height="4" fill="#5a4030"/><rect x="284" y="48" width="202" height="4" fill="#4fb3d9"/>
+      <rect x="480" y="52" width="12" height="144" fill="url(#hex)"/>
+      <path d="M534 120H500M508 113l-8 7 8 7" stroke="#e0753f" fill="none" stroke-width="2"/>
+      <path d="M470 100c-22 8-22 22 0 30s22 22 0 30" stroke="#8fa6ad" fill="none" stroke-dasharray="3 4"/>
+      <rect x="190" y="335" width="34" height="40" fill="#e0753f"/><rect x="236" y="325" width="34" height="50" fill="#4fb3d9"/>
+      <path d="M300 44H262V325" stroke="#4fb3d9" stroke-width="4" fill="none"/>
+      <path d="M120 332V355H190" stroke="#e0753f" stroke-width="4" fill="none"/>
+      <g font-family="Instrument Sans,sans-serif" font-size="13" fill="#e6eef0">
+        <text x="203" y="360" fill="#1a0d06" font-weight="700">B</text><text x="249" y="354" fill="#06222c" font-weight="700">A</text>
+        <text x="62" y="288" fill="#8fa6ad">Amfiteater</text><text x="296" y="270">Dek +2,6 m</text>
+        <text x="20" y="214" fill="#4fb3d9">BFE +2,0 m</text><text x="330" y="28">Blue-green roof</text>
+        <text x="416" y="222" fill="#8fa6ad" font-size="11">kolong terbuka</text><text x="470" y="236" fill="#e0753f" font-size="12" text-anchor="end">Beehive</text>
+      </g>
+    </svg>
+  </section>
 
-  <div class="slide">
-    <div class="label">The Solution</div>
-    <h1 class="title">Elevated Building & <span class="accent">Wet-Dry Zoning</span></h1>
-    <p class="subtitle">Memberi ruang bagi air di bawah (Open Undercroft), melindungi aktivitas utama di atas (DFE +2,6m), dan menggunakan Amfiteater sebagai retensi adaptif.</p>
-    <div class="visual card-grid">
-      <div class="card"><h3>Zona Kering (+2,6 m)</h3><p>Community Food Hall, Perpustakaan, Working Space. Dilindungi dengan Dry Floodproofing. Akses via Ramp inklusif.</p></div>
-      <div class="card"><h3>Zona Transisi (Undercroft)</h3><p>Berfungsi untuk komunal saat kering, menerima aliran air (Wet Floodproofing) saat banjir.</p></div>
-      <div class="card"><h3>Zona Basah (Amfiteater)</h3><p>Panggung saat kering, cekungan retensi (tampungan) saat hujan lebat.</p></div>
-    </div>
-  </div>
-
-  <div class="slide">
-    <div class="label">Water & Thermal Management</div>
-    <h1 class="title">Siklus Air <span class="accent">Tertutup</span> & Pendinginan</h1>
-    <p class="subtitle">Air atap dan limpasan dikelola secara terpisah untuk mencegah genangan dan menghasilkan air guna ulang (non-potabel).</p>
-    <div class="visual">
-      <div class="card-grid">
-        <div class="card"><h3 style="color:#2563eb">Jalur A (Air Atap)</h3><p>Blue-Green Roof &rarr; First Flush &rarr; Filtrasi &rarr; Tangki A (Toilet & Irigasi).</p></div>
-        <div class="card"><h3 style="color:#ea580c">Jalur B (Limpasan)</h3><p>Amfiteater &rarr; Rockflow &rarr; Filtrasi &rarr; Tangki B &rarr; Overflow ke Kolam Retensi.</p></div>
-        <div class="card"><h3 style="color:#b45309">Beehive Cooling</h3><p>Fasad keramik berpori dibasahi air untuk pendinginan evaporatif alami.</p></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="nav-dots" id="navDots">
-    <div class="dot active" data-dot="0"></div><div class="dot" data-dot="1"></div>
-    <div class="dot" data-dot="2"></div><div class="dot" data-dot="3"></div>
-  </div>
-  <div class="nav-buttons">
-    <button id="btnPrev" disabled>← Sebelumnya</button>
-    <button id="btnNext" class="primary">Selanjutnya →</button>
-    <button id="btnStart" class="primary" style="display:none">Mulai Simulasi 3D →</button>
+  <div id="nav">
+    <div id="dots"></div>
+    <div class="arrows"><button id="prv" aria-label="Sebelumnya">←</button><button id="nxt" aria-label="Berikutnya">→</button></div>
   </div>
 </div>
 
-<!-- ==================== SIMULATION CONTAINER ==================== -->
-<div id="sim-container">
-  <div id="labels"></div>
-  <div id="balloon"><span class="t" id="bt">Penjelasan Sistem</span><span id="bc"></span></div>
-
-  <div id="panel" class="sim-card">
-    <div id="ph"><span>ARCHITECTURAL SYSTEM</span><button id="col" style="padding:2px 6px;border:none;background:transparent;cursor:pointer">▾</button></div>
-    <div id="pb">
-      <h1>Ruang Komunal Terangkat</h1>
-      <p class="sub">Community Food Hall + Perpustakaan · Denpasar</p>
-      <div class="std"><span>BFE +2,0 m</span><span>DFE +2,6 m</span><span>Freeboard 0,6 m</span></div>
-      
-      <div id="modes"></div>
-      <button id="reset">↺ Reset Tampilan</button>
-      
-      <div id="step" hidden>
-        <div id="sc"></div><h3 id="st"></h3><p id="sn"></p><div class="bar"><i id="sb"></i></div>
-        <div class="ctl"><button id="bk">◀ Kembali</button><button id="pp">⏸ Jeda</button><button id="nx">Lanjut ▶</button><button id="cl">✕ Tutup</button></div>
-      </div>
-
-      <div class="tg"><label><input type="checkbox" id="xr"> X-ray tanah</label><label><input type="checkbox" id="lb" checked> Label</label></div>
-      <div id="legend">
-        <span><i style="background:#94a3b8"></i>Beton/Kolom</span><span><i style="background:#b45309"></i>Terakota/Kayu</span>
-        <span><i style="background:#22c55e"></i>Green Roof</span><span><i style="background:#38bdf8"></i>Food Hall/Library</span>
-        <span><i style="background:#2563eb"></i>Jalur A</span><span><i style="background:#ea580c"></i>Jalur B</span>
-        <span><i style="background:#9333ea"></i>Overflow</span><span><i style="background:#475569"></i>Tangki Air</span>
-      </div>
-    </div>
+<!-- ================= SIMULASI ================= -->
+<div id="stage"></div>
+<aside id="panel">
+  <h3>Simulasi</h3><small>Putar, zoom, geser dengan mouse</small>
+  <div id="modes">
+    <button class="mb" data-m="banjir">🌊 Banjir</button>
+    <button class="mb" data-m="drainase">💧 Drainase & Sampah</button>
+    <button class="mb" data-m="panen">🌧️ Panen Air Hujan</button>
+    <button class="mb" data-m="beehive">🐝 Beehive Cooling</button>
+    <button class="mb" data-m="pasca">🧹 Pascabanjir</button>
   </div>
-
-  <div id="hud" class="sim-card">
-    <div><span>Muka air</span><b id="hw">-3,20 m</b></div><div><span>BFE / DFE</span><b>+2,0 / +2,6 m</b></div>
-    <div><span>Kapasitas</span><b id="ht">20%</b></div><div><span>Status</span><b id="hs">Standby</b></div>
+  <div id="ctl">
+    <small id="cm"></small>
+    <div class="pgb"><i id="pg"></i></div>
+    <div class="cg"><button id="pv">◀ Kembali</button><button id="pz">⏸ Jeda</button><button id="nx">Lanjut ▶</button><button id="cl">✕ Tutup</button></div>
   </div>
+  <button class="back" id="bk">← Kembali ke slide</button>
+</aside>
+<div id="hud"><small>Muka air</small><div id="lv">-2,5 m</div><div id="st">Normal</div><div id="dk"></div></div>
 
-  <div id="info" class="sim-card" hidden><button id="ic">✕</button><h4 id="it"></h4><h5>Bentuk</h5><p id="ib"></p><h5>Fungsi & Teori</h5><p id="if"></p></div>
-</div>
+<div id="bubble"><div id="bs"></div><div id="bt"></div><div id="bx"></div></div>
 
-<!-- ==================== INTRO SLIDER LOGIC ==================== -->
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  const slides = document.querySelectorAll('.slide');
-  const dots = document.querySelectorAll('.dot');
-  const btnPrev = document.getElementById('btnPrev');
-  const btnNext = document.getElementById('btnNext');
-  const btnStart = document.getElementById('btnStart');
-  const introContainer = document.getElementById('intro-container');
-  const simContainer = document.getElementById('sim-container');
-  let currentSlide = 0;
-  const totalSlides = slides.length;
-
-  function goToSlide(index) {
-    if (index < 0 || index >= totalSlides) return;
-    slides.forEach((s, i) => {
-      s.classList.toggle('active', i === index);
-      if (i === index) {
-        const children = s.querySelectorAll('.label, .title, .subtitle, .visual');
-        children.forEach(child => { child.style.animation = 'none'; child.offsetHeight; child.style.animation = ''; });
-      }
-    });
-    dots.forEach((d, i) => d.classList.toggle('active', i === index));
-    btnPrev.disabled = index === 0;
-    if (index === totalSlides - 1) { btnNext.style.display = 'none'; btnStart.style.display = 'block'; } 
-    else { btnNext.style.display = 'block'; btnStart.style.display = 'none'; }
-    currentSlide = index;
-  }
-  btnNext.addEventListener('click', () => goToSlide(currentSlide + 1));
-  btnPrev.addEventListener('click', () => goToSlide(currentSlide - 1));
-  dots.forEach((dot, i) => dot.addEventListener('click', () => goToSlide(i)));
-  btnStart.addEventListener('click', () => {
-    introContainer.classList.add('hidden');
-    setTimeout(() => { simContainer.classList.add('active'); window.dispatchEvent(new Event('resize')); }, 800);
-  });
-  goToSlide(0);
-});
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}
 </script>
-
-<!-- ==================== 3D SIMULATION LOGIC ==================== -->
+<script>
+/* ---------- Slide logic (classic script, runs first) ---------- */
+(function(){
+  const sl=[...document.querySelectorAll('.slide')],deck=document.getElementById('deck'),dots=document.getElementById('dots');
+  let cur=0;
+  sl.forEach((_,i)=>{const b=document.createElement('button');b.setAttribute('aria-label','Slide '+(i+1));b.onclick=()=>go(i);dots.appendChild(b)});
+  function go(i){cur=Math.max(0,Math.min(sl.length-1,i));sl.forEach((s,k)=>s.classList.toggle('on',k===cur));[...dots.children].forEach((d,k)=>d.classList.toggle('on',k===cur));document.getElementById('prv').disabled=cur===0;deck.classList.toggle('last',cur===sl.length-1)}
+  document.getElementById('prv').onclick=()=>go(cur-1);document.getElementById('nxt').onclick=()=>go(cur+1);
+  addEventListener('keydown',e=>{if(deck.classList.contains('hide'))return;if(e.key==='ArrowRight'||e.key===' ')go(cur+1);if(e.key==='ArrowLeft')go(cur-1)});
+  go(0);
+  window.__go=go;
+})();
+</script>
 <script type="module">
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 
-const $=s=>document.querySelector(s),rnd=(a,b)=>a+Math.random()*(b-a),mv=(a,b,d)=>a+Math.max(-d,Math.min(d,b-a));
+const $=s=>document.querySelector(s), fmt=v=>(v>0?'+':'')+v.toFixed(1).replace('.',',')+' m';
+const BFE=2.0, DFE=2.6, GD=4, AZ=-6, R=[10.55,9.4,8.3,7.2,6.1,5.0], TOP=[-.35,-.7,-1.05,-1.4,-1.75,-2.1];
 
-const C = {
-    concrete: 0xe5e5e5,     // Beton putih bersih
-    concreteDark: 0x52525b, // Beton gelap / undakan
-    wood: 0x854d0e,         // Kayu / Bata ekspos
-    terra: 0xb45309,        // Terakota (Beehive)
-    moss: 0x4d7c0f,         // Hijau atap
-    sage: 0x65a30d,         // Tanaman
-    water: 0x1e3a8a,        // Air
-    glass: 0xa1a1aa,        // Kaca
-    metal: 0x475569,        // Pipa / Tangki
-    cPathA: 0x2563eb, cPathB: 0xd97706, cBee: 0xb45309, cOver: 0x7e22ce
-};
-
-/* ---------- RENDERER & SCENE ---------- */
-const renderer=new THREE.WebGLRenderer({antialias:true, alpha:false});
+/* ---------- renderer / scene ---------- */
+const renderer=new THREE.WebGLRenderer({antialias:true});
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));
 renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
-renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;
-document.body.prepend(renderer.domElement);
-renderer.domElement.style.position = 'fixed';
-renderer.domElement.style.top = '0';
-renderer.domElement.style.left = '0';
-renderer.domElement.style.zIndex = '0';
-
+renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;
+$('#stage').appendChild(renderer.domElement);
 const scene=new THREE.Scene();
-scene.background = new THREE.Color(0xf0f0f0);
-scene.fog=new THREE.Fog(0xf0f0f0,150,400);
-
-const pm=new THREE.PMREMGenerator(renderer);
-scene.environment=pm.fromScene(new RoomEnvironment(),0.04).texture;
-scene.environmentIntensity=0.6;
-
-const camera=new THREE.PerspectiveCamera(35,1,.1,900);
-camera.position.set(45, 25, 55);
-
+scene.background=new THREE.Color(0xe0f2fe);scene.fog=new THREE.Fog(0xe0f2fe,120,280);
+scene.environment=new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(),.04).texture;
+scene.environmentIntensity=.55;
+const camera=new THREE.PerspectiveCamera(40,1,.5,500);camera.position.set(40,22,44);
 const controls=new OrbitControls(camera,renderer.domElement);
-controls.enableDamping=true; controls.dampingFactor=0.05;
-controls.minDistance=20; controls.maxDistance=150;
-controls.maxPolarAngle = Math.PI/2 - 0.02; // Cegah kamera tembus tanah
+controls.target.set(0,1,-2);controls.enableDamping=true;controls.maxPolarAngle=Math.PI*.78;controls.minDistance=6;controls.maxDistance=140;
 
-/* ---------- LIGHTING ---------- */
-scene.add(new THREE.AmbientLight(0xffffff, 0.5));
-const hemiLight = new THREE.HemisphereLight(0xddeeff, 0x8a7a6a, 0.8);
-scene.add(hemiLight);
+scene.add(new THREE.AmbientLight(0xffffff,.38));scene.add(new THREE.HemisphereLight(0xe0f2fe,0x4d7c0f,.5));
+const sun=new THREE.DirectionalLight(0xfff4e0,2.4);sun.position.set(32,52,28);sun.castShadow=true;
+sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-45,right:45,top:45,bottom:-45,near:1,far:150});
+sun.shadow.bias=-.0004;sun.shadow.normalBias=.03;scene.add(sun);
 
-const sun=new THREE.DirectionalLight(0xfff5e6,2.5);
-sun.position.set(-40, 60, 40);sun.castShadow=true;
-sun.shadow.mapSize.set(4096,4096);
-Object.assign(sun.shadow.camera,{left:-60,right:60,top:60,bottom:-60,near:10,far:200});
-sun.shadow.bias=-0.0004;sun.shadow.normalBias=0.05;
-scene.add(sun);
+/* ---------- materials ---------- */
+const M=(c,r=.85,m=0)=>new THREE.MeshStandardMaterial({color:c,roughness:r,metalness:m});
+const concrete=M(0xd2d3cf,.9), stepConc=M(0xdcdcd8,.9), wood=M(0xb98a5a,.65), soilM=M(0x3f2c20,1), steel=M(0x1f2427,.5,.6);
+const gTop=M(0x65a30d,1), gSide=M(0x7c6650,1), baseM=M(0x7c6650,1);
+const terra=M(0xc4643a,.9);terra.side=THREE.DoubleSide;
+const glass=new THREE.MeshPhysicalMaterial({color:0xffffff,transmission:1,roughness:.04,thickness:.12,ior:1.45,metalness:0,attenuationColor:new THREE.Color(0xcfeaf2),attenuationDistance:6});
+const rail=new THREE.MeshStandardMaterial({color:0xbfe3ee,transparent:true,opacity:.28,roughness:.1});
+const xm=[gTop,gSide,baseM,stepConc];
 
-/* ---------- MATERIALS ---------- */
-const G={},grp=n=>G[n]||(G[n]={m:[],dim:1}),KEEP=new Set(['ground','bfe']);
-function mat(g,color,op=1,o={}){
-    const isPhys = o.transmission !== undefined || o.clearcoat !== undefined;
-    const M = isPhys ? THREE.MeshPhysicalMaterial : THREE.MeshStandardMaterial;
-    const m=new M({color,roughness:0.8,metalness:0,transparent:op<1,opacity:op,emissive:0x000000,emissiveIntensity:0,...o});
-    m.userData.b=op;grp(g).m.push(m);return m;
+function box(w,h,d,x,y,z,mat=concrete,cast=true,parent=scene){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);m.castShadow=cast;m.receiveShadow=true;parent.add(m);return m}
+function batch(mat){const a=[];return{add:(sx,sy,sz,x,y,z,c)=>a.push([sx,sy,sz,x,y,z,c]),build(){const im=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),mat,a.length),o=new THREE.Object3D(),c=new THREE.Color();a.forEach((e,i)=>{o.position.set(e[3],e[4],e[5]);o.scale.set(e[0],e[1],e[2]);o.updateMatrix();im.setMatrixAt(i,o.matrix);im.setColorAt(i,c.set(e[6]))});im.castShadow=im.receiveShadow=true;scene.add(im)}}}
+
+/* ---------- 1. TANAH + CEKUNGAN AMFITEATER ---------- */
+const shp=new THREE.Shape();shp.moveTo(-30,-30);shp.lineTo(30,-30);shp.lineTo(30,30);shp.lineTo(-30,30);shp.closePath();
+const hole=new THREE.Path();hole.absarc(0,-AZ,R[0]-.05,Math.PI,2*Math.PI,false);hole.closePath();shp.holes.push(hole);
+const gg=new THREE.ExtrudeGeometry(shp,{depth:GD,bevelEnabled:false,curveSegments:64});
+gg.rotateX(-Math.PI/2);gg.translate(0,-GD,0);
+const ground=new THREE.Mesh(gg,[gTop,gSide]);ground.receiveShadow=true;ground.castShadow=true;scene.add(ground);
+
+// Amfiteater
+const HALF=[-Math.PI/2,Math.PI];
+const base=new THREE.Mesh(new THREE.CylinderGeometry(R[0],R[0],GD+TOP[5],72,1,false,...HALF),baseM);
+base.position.set(0,-GD+(GD+TOP[5])/2,AZ);base.receiveShadow=true;scene.add(base);
+const stage=new THREE.Mesh(new THREE.CircleGeometry(R[5],64,Math.PI,Math.PI),stepConc);
+stage.rotation.x=-Math.PI/2;stage.position.set(0,TOP[5]+.005,AZ);stage.receiveShadow=true;scene.add(stage);
+for(let i=0;i<5;i++){
+  const ro=R[i],ri=R[i+1],t=TOP[i];
+  const ring=new THREE.Mesh(new THREE.RingGeometry(ri,ro,72,1,Math.PI,Math.PI),stepConc);
+  ring.rotation.x=-Math.PI/2;ring.position.set(0,t,AZ);ring.receiveShadow=true;scene.add(ring);
+  const wd=new THREE.Mesh(new THREE.RingGeometry(ri+.12,ro-.5,72,1,Math.PI,Math.PI),wood);
+  wd.rotation.x=-Math.PI/2;wd.position.set(0,t+.02,AZ);wd.receiveShadow=true;scene.add(wd);
+  const h=t-TOP[i+1];
+  const riser=new THREE.Mesh(new THREE.CylinderGeometry(ri,ri,h,72,1,true,...HALF),new THREE.MeshStandardMaterial({color:0xe6e6e2,roughness:.9,side:THREE.DoubleSide}));
+  riser.position.set(0,TOP[i+1]+h/2,AZ);riser.castShadow=true;riser.receiveShadow=true;scene.add(riser);
 }
-const pick=[],dm=new THREE.Object3D();
-function M(geo,m,x,y,z,key,par=scene){const o=new THREE.Mesh(geo,m);o.position.set(x,y,z);o.receiveShadow=true;o.castShadow=Array.isArray(m)||m.userData.b===1;
- if(key){o.userData.key=key;pick.push(o)}par.add(o);return o}
+const pod=new THREE.Mesh(new THREE.CylinderGeometry(2.2,2.2,.12,48,1,false,...HALF),wood);pod.position.set(0,TOP[5]+.06,AZ);pod.receiveShadow=pod.castShadow=true;scene.add(pod);
+const trackM=new THREE.MeshStandardMaterial({color:0xb5472f,roughness:.95});
+const trk=new THREE.Mesh(new THREE.RingGeometry(R[0]+.25,R[0]+1.5,96,1,Math.PI,Math.PI),trackM);trk.rotation.x=-Math.PI/2;trk.position.set(0,.03,AZ);trk.receiveShadow=true;scene.add(trk);
+const trl=new THREE.Mesh(new THREE.RingGeometry(R[0]+.85,R[0]+.9,96,1,Math.PI,Math.PI),M(0xf5f5f0,.9));trl.rotation.x=-Math.PI/2;trl.position.set(0,.04,AZ);scene.add(trl);
+box(2*(R[0]+1.5),.05,1.25,0,.03,AZ-.7,trackM,false).receiveShadow=true;
+xm.push(trackM);
 
-/* =========================================================
-   1. TANAH & KONTUR (Mengubur Amfiteater)
-   ========================================================= */
-const mGrass=mat('ground',C.moss,1,{roughness:1,metalness:0});
-{const ground=new THREE.Mesh(new THREE.PlaneGeometry(200,200),mGrass);
- ground.rotation.x=-Math.PI/2;ground.position.y=-0.1;ground.receiveShadow=true;scene.add(ground)}
+/* ---------- 2. DEK TERANGKAT + KOLOM + RAMP ---------- */
+const DZ=-8, DD=28;
+function deckShape(hr){const sp=new THREE.Shape();sp.moveTo(-14,-DZ-DD/2);sp.lineTo(14,-DZ-DD/2);sp.lineTo(14,-DZ+DD/2);sp.lineTo(-14,-DZ+DD/2);sp.closePath();
+  const h=new THREE.Path();h.absarc(0,-AZ,hr,Math.PI,2*Math.PI,false);h.closePath();sp.holes.push(h);return sp}
+const dg=new THREE.ExtrudeGeometry(deckShape(R[0]+.1),{depth:.35,bevelEnabled:false,curveSegments:64});dg.rotateX(-Math.PI/2);dg.translate(0,DFE-.35,0);
+const deckM=new THREE.Mesh(dg,concrete);deckM.castShadow=deckM.receiveShadow=true;scene.add(deckM);
+const aoM=new THREE.Mesh(new THREE.ShapeGeometry(deckShape(R[0]-.05),48),new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.24,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2}));
+aoM.rotation.x=-Math.PI/2;aoM.position.y=.012;aoM.renderOrder=1;scene.add(aoM);
+for(const x of[-12,-6,0,6,12])for(const z of[-20,-14,-8,-2,4]){if(z>AZ-.3&&Math.hypot(x,z-AZ)<12.4)continue;box(.3,DFE-.35,.3,x,(DFE-.35)/2,z,concrete)}
+box(28,.9,.06,0,DFE+.45,6,rail,false);box(.06,.9,DD,-14,DFE+.45,DZ,rail,false);box(.06,.9,DD,14,DFE+.45,DZ,rail,false);
+box(28,.05,.08,0,DFE+.9,6,steel,false);
+{const vr=new THREE.Mesh(new THREE.CylinderGeometry(R[0]+.2,R[0]+.2,.9,72,1,true,-Math.PI/2,Math.PI),new THREE.MeshStandardMaterial({color:0xbfe3ee,transparent:true,opacity:.28,roughness:.1,side:THREE.DoubleSide}));
+ vr.position.set(0,DFE+.45,AZ);scene.add(vr);
+ const vt=new THREE.Mesh(new THREE.TorusGeometry(R[0]+.2,.03,6,72,Math.PI),steel);vt.rotation.set(Math.PI/2,0,0);vt.position.set(0,DFE+.9,AZ);scene.add(vt);}
 
-/* =========================================================
-   2. AMPHITEATER (Menurun dari 0.0 ke -3.0)
-   ========================================================= */
-const amphiGroup = new THREE.Group();
-scene.add(amphiGroup);
-
-const mAmphiStep = mat('bowl', C.concreteDark, 1, {roughness:0.9});
-const mAmphiSeat = mat('bowl', C.wood, 1, {roughness:0.8});
-
-// Undakan melingkar setengah (menjorok ke bawah)
-for (let i = 0; i < 6; i++) {
-    let radius = 12 - i * 1.5;
-    let yDepth = -3.0 + i * 0.5; // Mulai dari -3.0 naik ke -0.5
-    
-    // Step beton
-    let stepGeo = new THREE.CylinderGeometry(radius, radius, 0.5, 64, 1, false, Math.PI, Math.PI);
-    let step = new THREE.Mesh(stepGeo, mAmphiStep);
-    step.position.y = yDepth;
-    step.castShadow = step.receiveShadow = true;
-    step.userData.key = 'bowl'; pick.push(step); amphiGroup.add(step);
-    
-    // Tribun kayu
-    let seatGeo = new THREE.CylinderGeometry(radius - 0.1, radius - 0.1, 0.1, 64, 1, false, Math.PI, Math.PI);
-    let seat = new THREE.Mesh(seatGeo, mAmphiSeat);
-    seat.position.y = yDepth + 0.25;
-    amphiGroup.add(seat);
+function ramp(x,z0,z1,y0,y1,w){
+  const dz=z1-z0,dy=y1-y0,L=Math.hypot(dz,dy),a=Math.atan2(dy,Math.abs(dz)),g=new THREE.Group();
+  box(w,.25,L,0,0,0,concrete,true,g);
+  for(const s of[-1,1]){box(.06,.06,L,s*(w/2-.04),.95,0,steel,false,g);box(.06,.06,L,s*(w/2-.04),.5,0,steel,false,g)}
+  g.position.set(x,(y0+y1)/2-.12,(z0+z1)/2);g.rotation.x=dz>0?-a:a;scene.add(g);
+  for(let k=0;k<=4;k++){const f=k/4,zz=z0+dz*f,yy=y0+dy*f-.25;if(yy>.3)box(.22,yy,.22,x,yy/2,zz,concrete)}
 }
-// Dasar amfiteater
-let floor = new THREE.Mesh(new THREE.CylinderGeometry(6, 6, 0.1, 64, 1, false, Math.PI, Math.PI), mAmphiStep);
-floor.position.y = -3.0; floor.receiveShadow = true; floor.userData.key = 'bowl'; pick.push(floor); amphiGroup.add(floor);
+ramp(17,2,-13.6,0,1.3,2.2);
+box(5.7,.25,2.4,18.75,1.3-.125,-14.8);
+for(const [px,pz] of[[16.2,-13.8],[21.3,-13.8],[16.2,-15.8],[21.3,-15.8]])box(.25,1.1,.25,px,.55,pz);
+ramp(20.5,-16,-.4,1.3,DFE,2.2);
+box(7.6,.25,2.2,17.8,DFE-.125,.8);
 
+/* ---------- 3. BANGUNAN DI ATAS DEK ---------- */
+const tufts=[],bushes=[];
+function scatter(cx,y,cz,w,d,nt,nb){for(let i=0;i<nt;i++)tufts.push([cx+(Math.random()-.5)*w,y,cz+(Math.random()-.5)*d,.5+Math.random()*.9]);for(let i=0;i<nb;i++)bushes.push([cx+(Math.random()-.5)*w,y,cz+(Math.random()-.5)*d,.35+Math.random()*.45])}
 
-/* =========================================================
-   3. DECK TERANGKAT (+2.6m) & KOLOM
-   ========================================================= */
-const bldgGroup = new THREE.Group();
-scene.add(bldgGroup);
-
-// Deck dengan lubang melingkar di atas amfiteater
-const deckShape = new THREE.Shape();
-deckShape.moveTo(-20, -15); deckShape.lineTo(20, -15); deckShape.lineTo(20, 15); deckShape.lineTo(-20, 15); deckShape.lineTo(-20, -15);
-const deckHole = new THREE.Path();
-deckHole.absarc(0, 0, 12.5, 0, Math.PI * 2, true);
-deckShape.holes.push(deckHole);
-
-const mDeck = mat('deck', C.concrete, 1, {roughness:0.5});
-const deckGeo = new THREE.ExtrudeGeometry(deckShape, {depth: 0.5, bevelEnabled: false});
-const deck = new THREE.Mesh(deckGeo, mDeck);
-deck.rotation.x = -Math.PI/2;
-deck.position.y = 2.6;
-deck.castShadow = deck.receiveShadow = true;
-deck.userData.key = 'deck'; pick.push(deck); bldgGroup.add(deck);
-
-// Kolom Penyangga
-const mCol = mat('under', C.concreteDark, 1, {roughness:0.6});
-for(let x=-18; x<=18; x+=6) {
-    for(let z=-13; z<=13; z+=6) {
-        if (Math.abs(x) < 14 && Math.abs(z) < 14) continue; // Hindari area amfiteater
-        let col = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 2.6, 16), mCol);
-        col.position.set(x, 1.3, z);
-        col.castShadow = true; col.receiveShadow = true;
-        col.userData.key = 'under'; pick.push(col); bldgGroup.add(col);
-    }
+function beehive(cx,cy,cz,w,h,axis,sign){
+  const r=.14,len=.42,dx=r*2.12,dy=dx*.866,cols=Math.floor(w/dx),rows=Math.floor(h/dy);
+  const geo=new THREE.CylinderGeometry(r,r,len,14,1,true);geo.rotateX(Math.PI/2);
+  const im=new THREE.InstancedMesh(geo,terra,cols*rows),o=new THREE.Object3D();let n=0;
+  for(let j=0;j<rows;j++)for(let i=0;i<cols;i++){
+    const u=(i-(cols-1)/2)*dx+(j%2?dx/2:0),v=(j-(rows-1)/2)*dy;if(Math.abs(u)>w/2-r)continue;
+    if(axis==='z'){o.position.set(cx+u,cy+v,cz+sign*len/2);o.rotation.set(0,0,0)}
+    else{o.position.set(cx+sign*len/2,cy+v,cz+u);o.rotation.set(0,Math.PI/2,0)}
+    o.updateMatrix();im.setMatrixAt(n++,o.matrix);
+  }
+  im.count=n;im.castShadow=im.receiveShadow=true;scene.add(im);
+  const bk=axis==='z'?[w,h,.04,cx,cy,cz+sign*.03]:[.04,h,w,cx+sign*.03,cy,cz];
+  box(...bk,M(0x2a1d17,1),false);
+  const fr=axis==='z'?[[w,.08,.1,cx,cy+h/2,cz+sign*.2],[w,.08,.1,cx,cy-h/2,cz+sign*.2]]:[[.1,.08,w,cx+sign*.2,cy+h/2,cz],[.1,.08,w,cx+sign*.2,cy-h/2,cz]];
+  fr.forEach(f=>box(...f,steel,false));
 }
 
-// Ramp Akses dari 0.0 ke +2.6m
-const mRamp = mat('deck', C.concrete, 1, {roughness:0.6});
-let rampMesh = M(new THREE.BoxGeometry(4, 0.2, 18), mRamp, -22, 1.3, 6, 'deck', bldgGroup);
-rampMesh.rotation.x = -Math.PI/16; 
-
-/* =========================================================
-   4. BANGUNAN (Interior Terlihat & Beehive)
-   ========================================================= */
-const mGlass = mat('hall', C.glass, 0.2, {transmission:0.9, roughness:0.05, metalness:0.1, clearcoat:1});
-const mWood = mat('hall', C.wood, 1, {roughness:0.8});
-
-// Food Hall (Kiri) - Bentuk Sederhana Kaca
-M(new THREE.BoxGeometry(14, 4, 10), mGlass, -8, 5.1, -6, 'hall', bldgGroup);
-M(new THREE.BoxGeometry(12, 0.2, 8), mWood, -8, 3.2, -6, 'hall', bldgGroup); // Meja panjang
-M(new THREE.BoxGeometry(12, 2.5, 8), mat('hall', 0xffffff, 0.3), -8, 4.3, -6, 'hall', bldgGroup); // Atap putih
-
-// Perpustakaan (Kanan) - Bentuk Sederhana Kaca
-M(new THREE.BoxGeometry(14, 4, 10), mGlass, 8, 5.1, -6, 'lib', bldgGroup);
-M(new THREE.BoxGeometry(12, 0.2, 8), mWood, 8, 3.2, -6, 'lib', bldgGroup); // Meja baca
-M(new THREE.BoxGeometry(12, 2.5, 8), mat('lib', 0xffffff, 0.3), 8, 4.3, -6, 'lib', bldgGroup); // Atap putih
-
-// Fasad Beehive (Menempel di sisi kanan Perpustakaan)
-const beehiveGroup = new THREE.Group();
-beehiveGroup.position.set(15.1, 3.1, -6); // Nempel di dinding luar
-bldgGroup.add(beehiveGroup);
-const mTerra = mat('facade', C.terra, 1, {roughness: 0.9});
-const pipeGeo = new THREE.CylinderGeometry(0.15, 0.15, 1.5, 12); pipeGeo.rotateZ(Math.PI/2); // Vertikal
-const instPipe = new THREE.InstancedMesh(pipeGeo, mTerra, 200);
-let pIdx = 0;
-for(let y=0; y<10; y++) {
-    for(let z=-4.5; z<=4.5; z+=0.35) {
-        let yOffset = (y%2)*0.2;
-        dm.position.set(0, y*0.35, z+yOffset); dm.updateMatrix();
-        instPipe.setMatrixAt(pIdx++, dm.matrix);
-    }
+const floorY=DFE, H=3.6;
+function building(cx,cz,w,d){
+  const cy=floorY+H/2;
+  box(w,.06,d,cx,floorY+.03,cz,M(0xb9a58a,.8),false);
+  const gl=new THREE.Mesh(new THREE.BoxGeometry(w,H,d),glass);gl.position.set(cx,cy,cz);scene.add(gl);
+  const ed=new THREE.LineSegments(new THREE.EdgesGeometry(gl.geometry),new THREE.LineBasicMaterial({color:0x1f2427}));ed.position.copy(gl.position);scene.add(ed);
+  for(let x=-w/2+w/4;x<w/2;x+=w/4){box(.08,H,.08,cx+x,cy,cz+d/2,steel,false);box(.08,H,.08,cx+x,cy,cz-d/2,steel,false)}
+  for(const sx of[-1,1])for(const sz of[-1,1])box(.2,H,.2,cx+sx*(w/2-.1),cy,cz+sz*(d/2-.1),steel);
+  const ty=floorY+H;
+  box(w+.5,.3,d+.5,cx,ty+.15,cz,concrete);
+  box(w+.3,.16,d+.3,cx,ty+.38,cz,new THREE.MeshStandardMaterial({color:0x4fb3d9,roughness:.2,transparent:true,opacity:.9}),false);
+  box(w+.1,.42,d+.1,cx,ty+.67,cz,soilM,false);
+  scatter(cx,ty+.88,cz,w-.2,d-.2,int(w*d*5),int(w*d*.3));
 }
-instPipe.castShadow = true; instPipe.userData.key = 'facade'; pick.push(instPipe);
-beehiveGroup.add(instPipe);
+const int=Math.floor;
+building(-6.5,-12,11,8);
+building(7,-12,11,8);
 
-// Blue-Green Roof
-const roofGroup = new THREE.Group();
-roofGroup.position.set(0, 7.5, -6);
-bldgGroup.add(roofGroup);
-M(new THREE.BoxGeometry(30, 0.4, 11), mat('roof', 0x3f3f46, 1, {roughness:1}), 0, 0, 0, 'roof', roofGroup); 
-for(let i=0; i<50; i++){
-    M(new THREE.ConeGeometry(rnd(0.3,0.6), rnd(0.5,1), 5), mat('plants', C.sage, 1, {flatShading:true}), rnd(-14, 14), 0.3, rnd(-5, 5), 'roof', roofGroup);
+beehive(-6.5,floorY+H/2,-16,10.6,3.45,'z',-1);
+beehive(-12,floorY+H/2,-12,7.6,3.45,'x',-1);
+beehive(7,floorY+H/2,-16,10.6,3.45,'z',-1);
+beehive(12.5,floorY+H/2,-12,7.6,3.45,'x',1);
+
+const fur=batch(M(0xffffff,.7)),WC=0xa87848,DK=0x3a3a3c;
+for(const tz of[-14.3,-12,-9.7]){
+  fur.add(8,.06,.9,-6.5,floorY+.78,tz,WC);
+  for(const lx of[-3.7,3.7])for(const lz of[-.4,.4])fur.add(.07,.75,.07,-6.5+lx,floorY+.4,tz+lz,DK);
+  for(let k=0;k<8;k++)for(const s of[-1,1]){const cx2=-6.5-3.5+k,cz2=tz+s*.85;fur.add(.42,.05,.42,cx2,floorY+.46,cz2,0xd9d2c4);fur.add(.42,.45,.05,cx2,floorY+.7,cz2+s*.19,0xd9d2c4);fur.add(.05,.44,.05,cx2,floorY+.22,cz2,DK)}
+}
+fur.add(9.4,1,.6,-6.5,floorY+.5,-15.5,0x2c3a40);fur.add(9.4,.06,.7,-6.5,floorY+1.02,-15.5,0xc9c3b8);
+const books=batch(M(0xffffff,.8)),palette=[0xb5483a,0x3a6ea5,0xd8a838,0x4a7c59,0x7a4a8c,0xe6e0d0,0x2f4858,0xc77d4a];
+function shelf(cx,cz){
+  for(const s of[-1,1])fur.add(.05,2.2,.4,cx+s*.8,floorY+1.1,cz,WC);
+  for(let l=0;l<6;l++)fur.add(1.6,.04,.4,cx,floorY+.1+l*.42,cz,WC);
+  fur.add(1.6,2.2,.02,cx,floorY+1.1,cz-.19,0x8a6238);
+  for(let l=0;l<5;l++){let x=cx-.72;while(x<cx+.7){const bw=.04+Math.random()*.05,bh=.22+Math.random()*.12;books.add(bw,bh,.24,x+bw/2,floorY+.12+l*.42+bh/2,cz,palette[int(Math.random()*palette.length)]);x+=bw+.005}}
+}
+for(let k=0;k<6;k++)shelf(2.9+k*1.65,-15.5);
+for(let k=0;k<4;k++){shelf(4.2+k*1.65,-12.6);}
+fur.add(4.2,.06,1,7.2,floorY+.78,-9.6,WC);
+for(let k=0;k<4;k++)for(const s of[-1,1]){fur.add(.42,.05,.42,5.7+k*1.1,floorY+.46,-9.6+s*.8,0x3a6ea5);fur.add(.05,.44,.05,5.7+k*1.1,floorY+.22,-9.6+s*.8,DK)}
+fur.build();books.build();
+
+for(const px of[-12,12]){box(3.2,.5,1,px,floorY+.25,1.6,concrete);box(3,.1,.8,px,floorY+.52,1.6,soilM,false);scatter(px,floorY+.57,1.6,3,.7,45,4)}
+
+{
+  const tg=new THREE.ConeGeometry(.07,.7,5);tg.translate(0,.35,0);
+  const bg=new THREE.IcosahedronGeometry(.4,1);bg.translate(0,.3,0);
+  const vm=new THREE.MeshStandardMaterial({color:0xffffff,roughness:.9}),o=new THREE.Object3D(),c=new THREE.Color();
+  const T=new THREE.InstancedMesh(tg,vm,tufts.length),B=new THREE.InstancedMesh(bg,vm,bushes.length);
+  tufts.forEach((p,i)=>{o.position.set(p[0],p[1],p[2]);o.rotation.set((Math.random()-.5)*.4,Math.random()*6,(Math.random()-.5)*.4);o.scale.set(1,p[3],1);o.updateMatrix();T.setMatrixAt(i,o.matrix);T.setColorAt(i,c.setHSL(.17+Math.random()*.14,.45+Math.random()*.2,.3+Math.random()*.15))});
+  bushes.forEach((p,i)=>{o.position.set(p[0],p[1],p[2]);o.rotation.set(0,Math.random()*6,0);o.scale.set(1,p[3]*1.2,1).multiplyScalar(p[3]*1.6);o.updateMatrix();B.setMatrixAt(i,o.matrix);B.setColorAt(i,c.setHSL(.25+Math.random()*.08,.5,.2+Math.random()*.12))});
+  T.castShadow=B.castShadow=true;scene.add(T,B);
+}
+for(const [x,z] of[[-26,-24],[26,-26],[-25,22],[26,22],[25,8],[-27,2]]){
+  const tr=new THREE.Mesh(new THREE.CylinderGeometry(.14,.2,3,8),M(0x5a4030));tr.position.set(x,1.5,z);tr.castShadow=true;scene.add(tr);
+  for(const [dx,dy,s] of[[0,3.6,1.8],[.8,2.9,1.2],[-.7,3.1,1.3]]){const cr=new THREE.Mesh(new THREE.IcosahedronGeometry(s,1),M(0x5f8a4b,.9));cr.position.set(x+dx,dy,z);cr.castShadow=true;scene.add(cr)}
 }
 
 /* =========================================================
-   5. SISTEM AIR (X-RAY)
+   TAMBAHAN: TRASH RACK (METAL GRATE), DRYING BED, & ROCKFLOW
    ========================================================= */
-const systemGroup = new THREE.Group();
-systemGroup.position.set(0, -4, 25); // Di bawah tanah depan
-scene.add(systemGroup);
 
-const mTank = mat('tank', C.metal, 1, {metalness:0.8, roughness:0.2});
-const tankWater = [];
-M(new THREE.CylinderGeometry(1.5,1.5,3,32), mTank, -8,0,0,'tankA',systemGroup);
-const twA = new THREE.Mesh(new THREE.CylinderGeometry(1.4,1.4,1,32).translate(0,.5,0), mat('tankA', C.cPathA, 0.9, {emissive: C.cPathA, emissiveIntensity: 0.2}));
-twA.position.set(-8, -1.4, 0); systemGroup.add(twA); tankWater.push({mesh:twA, val:0});
+// 1. Trash Rack (Saringan Sampah Logam di dasar amfiteater)
+const rackGroup = new THREE.Group();
+rackGroup.position.set(0, TOP[5] + 0.15, AZ); // Tepat di panggung bawah
+scene.add(rackGroup);
+box(8, 0.3, 2, 0, 0, 0, concrete, true, rackGroup);
+box(8.2, 0.05, 0.2, 0, 0.15, 1, M(0xfbbf24), false, rackGroup);
+box(8.2, 0.05, 0.2, 0, 0.15, -1, M(0xfbbf24), false, rackGroup);
+const grateMat = M(0x334155, 0.5, 0.8);
+xm.push(grateMat);
+for(let i=-3.8; i<=3.8; i+=0.4) box(0.08, 0.15, 1.8, i, 0.15, 0, grateMat, false, rackGroup); 
+for(let i=-0.8; i<=0.8; i+=0.4) box(7.8, 0.15, 0.08, 0, 0.15, i, grateMat, false, rackGroup); 
 
-M(new THREE.CylinderGeometry(1.5,1.5,3,32), mTank, 8,0,0,'tankB',systemGroup);
-const twB = new THREE.Mesh(new THREE.CylinderGeometry(1.4,1.4,1,32).translate(0,.5,0), mat('tankB', C.cPathB, 0.9, {emissive: C.cPathB, emissiveIntensity: 0.2}));
-twB.position.set(8, -1.4, 0); systemGroup.add(twB); tankWater.push({mesh:twB, val:0});
+// 2. Area Penampungan Sedimen & Sampah Sementara (Di atas tanah, luar amfiteater)
+box(6, 0.4, 5, -15, 0.2, 4, concrete);
+box(6.2, 0.6, 0.2, -15, 0.3, 6.5, concrete); 
+box(6.2, 0.6, 0.2, -15, 0.3, 1.5, concrete); 
+box(0.2, 0.6, 5, -12, 0.3, 4, concrete);     
+box(0.2, 0.6, 5, -18, 0.3, 4, concrete);     
+box(4, 0.3, 3, -15, 0.45, 4, M(0x5a4030), false);
 
-M(new THREE.BoxGeometry(3, 1.5, 2), mat('filter', 0x1e293b, 1, {metalness:0.6}), 0, 0, 2, 'filter', systemGroup);
+// 3. Elemen Rockflow
+const rfGroup = new THREE.Group();
+rfGroup.position.set(-12, -3, 8);
+scene.add(rfGroup);
+const rfBoxMat = M(0x64748b, 0.9, 0.1);
+rfBoxMat.transparent = true; rfBoxMat.opacity = 0.2;
+xm.push(rfBoxMat);
+rfGroup.add(new THREE.Mesh(new THREE.BoxGeometry(6, 2, 6), rfBoxMat));
 
-/* =========================================================
-   6. PIPA ALIRAN
-   ========================================================= */
-const pipeGroups = {}, pipeMaterials = [];
-function createPipe(waypoints, color, key) {
-  const group = new THREE.Group(); group.userData.key = key; group.visible = false;
-  const m = new THREE.MeshStandardMaterial({ color: color, emissive: color, emissiveIntensity: 0.2, metalness: 0.9, roughness: 0.1, transparent: true, opacity: 1, depthTest: false, depthWrite: false });
-  pipeMaterials.push(m);
-  const curve = new THREE.CatmullRomCurve3(waypoints.map(p => new THREE.Vector3(...p)), false, 'catmullrom', 0.1);
-  const tubeGeo = new THREE.TubeGeometry(curve, 100, 0.15, 12, false);
-  const tube = new THREE.Mesh(tubeGeo, m);
-  tube.userData.key = key; tube.renderOrder = 999;
-  group.add(tube); pick.push(tube);
-  scene.add(group); pipeGroups[key] = group;
-  return curve;
+const stoneGeo = new THREE.IcosahedronGeometry(0.35, 0);
+const stoneMat = M(0x475569, 0.95, 0);
+xm.push(stoneMat);
+const stones = new THREE.InstancedMesh(stoneGeo, stoneMat, 60);
+const dummyObj = new THREE.Object3D();
+for(let i=0; i<60; i++){
+    dummyObj.position.set((Math.random()-0.5)*5.5, (Math.random()-0.5)*1.5, (Math.random()-0.5)*5.5);
+    dummyObj.rotation.set(Math.random()*3, Math.random()*3, Math.random()*3);
+    dummyObj.updateMatrix();
+    stones.setMatrixAt(i, dummyObj.matrix);
 }
-// Waypoints (Pipa Jalur A & B)
-const cvA = createPipe([[0, 8, -6], [-15, 8, -6], [-15, -4, 20], [-8, -4, 25]], C.cPathA, 'pipe_pathA'); 
-const cvB = createPipe([[0, -3, 0], [15, -3, 0], [15, -4, 20], [8, -4, 25]], C.cPathB, 'pipe_pathB'); 
-const cvBee = createPipe([[-8, -4, 25], [-8, -4, 30], [15, -4, 30], [15, 3.1, -6]], C.cBee, 'pipe_bee'); 
+stones.castShadow = true;
+rfGroup.add(stones);
 
-/* =========================================================
-   7. ORANG, AIR, HUJAN, RETAK
-   ========================================================= */
-const P=[],pal=[0x475569,0x334155,0x1e293b],skin=[0xfbd38d,0xe2b48c,0xc68e63];
-const add=o=>P.push({sh:0,g:0,s:0,y:0,x:0,z:0,sp:1,amp:0,ph:rnd(0,6.28),...o});
-// Orang di Amfiteater (Bawah kolong)
-for(let i=0;i<15;i++)add({t:'j',a:i*.8,r:5+(i%3)*.55,sp:(i%2?-1:1)*(.35+.07*(i%3)),g:1});
-// Orang di Food Hall / Perpustakaan
-[[-8,-6],[8,-6],[-5,-8],[5,-8]].forEach(([x,z])=>add({x,z,y:2.8,s:1,sh:.45}));
-const bodies=new THREE.InstancedMesh(new THREE.CapsuleGeometry(.15,.5,4,12),mat('people',0xffffff),P.length),heads=new THREE.InstancedMesh(new THREE.SphereGeometry(.12,12,12),mat('people',0xffffff),P.length);
-P.forEach((p,i)=>{bodies.setColorAt(i,new THREE.Color(pal[i%3]));heads.setColorAt(i,new THREE.Color(skin[i%3]))});
-[bodies,heads].forEach(m=>{m.castShadow=true;m.frustumCulled=false;m.userData.key='people';pick.push(m);scene.add(m)});
+const rfWaterMat = new THREE.MeshStandardMaterial({color: 0x00e5ff, transparent: true, opacity: 0.7, roughness: 0.1});
+const rfWater = new THREE.Mesh(new THREE.BoxGeometry(5.8, 1.8, 5.8), rfWaterMat);
+rfWater.position.y = -1; 
+rfGroup.add(rfWater);
+xm.push(rfWaterMat);
 
-// Self-Healing Crack
-const mCrack=new THREE.MeshStandardMaterial({color:0x0f172a,transparent:true,opacity:0,roughness:1,emissive:0x22c55e,emissiveIntensity:0});
-[[-8,-2],[9,-3]].forEach(([x,z])=>{
-  const pts=[];let px=x,pz=z;for(let i=0;i<10;i++){pts.push(new THREE.Vector3(px,3.1,pz));px+=Math.cos(1)*.3+rnd(-.15,.15);pz+=Math.sin(1)*.3+rnd(-.15,.15)}
-  const tube = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),32,0.06,8),mCrack);
-  tube.userData.key='deck_crack'; pick.push(tube); scene.add(tube);
-});
-
-// Air Banjir
-const mWaterFlood = new THREE.MeshStandardMaterial({ color: C.water, emissive: 0x0f172a, transparent: true, opacity: 0.85, roughness: 0.2, metalness: 0.1, depthWrite: false });
-const wg=new THREE.PlaneGeometry(200,200,64,64);wg.rotateX(-Math.PI/2);
-const flood=new THREE.Mesh(wg,mWaterFlood);flood.visible=false;scene.add(flood);
-const wpos=wg.attributes.position,wbx=Float32Array.from(wpos.array.filter((_,i)=>i%3===0)),wbz=Float32Array.from(wpos.array.filter((_,i)=>i%3===2));
-
-// Hujan
-const rainCount = 1500;
-const rainGeo = new THREE.BufferGeometry();
-const rainPos = new Float32Array(rainCount * 2 * 3);
-rainGeo.setAttribute('position', new THREE.BufferAttribute(rainPos, 3));
-const rain = new THREE.LineSegments(rainGeo, new THREE.LineBasicMaterial({ color: 0x64748b, transparent: true, opacity: 0.5 }));
-scene.add(rain);
-const r_vel = [], r_x = [], r_y = [], r_z = [];
-for(let i=0;i<rainCount;i++){r_x.push(rnd(-40,40));r_y.push(rnd(-3,25));r_z.push(rnd(-30,30));r_vel.push(rnd(15,25))}
-
-/* =========================================================
-   8. UI LOGIC & ANIMASI
-   ========================================================= */
-const LB=[
- ['Green Roof',[0,8.5,-6]], ['Food Hall',[-8,5.1,-6]], ['Perpustakaan',[8,5.1,-6]], 
- ['Deck +2,6m',[0,2.6,-15]], ['Undercroft (Kolong)',[-8,1.3,-6]], ['Amfiteater',[0,-2,0]],
- ['Beehive Cooling',[16,4,-6]], ['Tangki A/B',[0,-3,25]]
-].map(([t,p])=>{const e=document.createElement('div');e.textContent=t;$('#labels').appendChild(e);return{e,p}});
-
-const balloon = $('#balloon'), bTitle = $('#bt'), bContent = $('#bc');
-let balloonText = "", typedChars = 0;
-
-const D0={w:-3.0,rain:0,pMode:'',wet:0,tankA:20,tankB:20,crack:0,heal:0,pond:0},OV=[40,25,50,0,-1,-5];
-const MODES={
-flood:{n:'Banjir',i:'🌊',steps:[
- {t:'Kondisi Kering',f:['deck','hall','lib','bowl','people'],c:[40,25,50,0,0,-5],s:{w:-3.0,tankA:20,tankB:20},
-  n:'Ruang komunal berfungsi normal. Amfiteater di bawah kolong bangunan digunakan untuk berkumpul.'},
- {t:'Hujan & Luapan',f:['roof','bowl'],c:[30,20,40,0,0,-5],s:{w:-1.5,rain:1},
-  n:'Hujan lebat turun. Air limpasan mulai mengisi cekungan amfiteater untuk mencegah banjir ke permukiman.'},
- {t:'Air Memenuhi Amfiteater',f:['bowl'],c:[30,20,40,0,-1,0],s:{w:0.0,rain:1},
-  n:'Amfiteater terendam (Retensi). Massa bangunan utama tetap aman karena berada di atas dek +2,6m (Dry Floodproofing).'},
- {t:'Mencapai BFE +2,0m',f:['deck','under'],c:[40,15,30,0,2,-10],s:{w:2.0,rain:1},
-  n:'Muka air maksimal. Kolong bangunan (Undercroft) terendam (Wet Floodproofing), mempertahankan struktur utama tetap kering.'}]},
-drain:{n:'Drainase',i:'💧',steps:[
- {t:'Penyaringan & Retensi',f:['bowl'],c:[20,20,30,0,-1,0],s:{w:0.0},
-  n:'Air tertahan di amfiteater.'},
- {t:'Pemompaan ke Tangki B',f:['pipe_pathB','filter','tankB'],c:[30,20,30,0,-4,25],s:{w:-3.0,pMode:'pathB',tankB:60,x:1},
-  n:'Air dari amfiteater dipompa melewati Filtrasi menuju Tangki B (Air Limpasan).'}]},
-rain:{n:'Panen Air Hujan',i:'🌧️',steps:[
- {t:'Hujan di Green Roof',f:['roof'],c:[40,30,40,0,7,-6],s:{w:-3.0,rain:1,tankA:15,tankB:20},
-  n:'Air hujan ditahan oleh media tanam dan vegetasi pada Blue-Green Roof.'},
- {t:'Filtrasi & Tangki A',f:['pipe_pathA','filter','tankA'],c:[30,20,30,0,-4,25],s:{w:-3.0,rain:1,pMode:'pathA',tankA:60,x:1},
-  n:'Air atap mengalir ke Tangki A (Air Bersih) untuk digunakan kembali (toilet/irigasi).'}]},
-cool:{n:'Beehive Cooling',i:'🐝',steps:[
- {t:'Pembasahan Fasad',f:['facade','pipe_bee'],c:[30,20,20,16,4,-6],s:{w:-3.0,pMode:'bee',wet:1},
-  n:'Air menetes membasahi panel keramik berpori (Terakota). Warna panel menggelap saat basah.'}]},
-post:{n:'Pascabanjir',i:'🧹',steps:[
- {t:'Pembersihan Sedimen',f:['bowl','people'],c:[30,20,30,0,-2,0],s:{w:-1.5},
-  n:'Air surut. Warga membersihkan lumpur dan sampah di area amfiteater.'},
- {t:'Self-Healing Concrete',f:['deck_crack'],c:[30,20,30,-10,3,-15],s:{w:-3.0,crack:1,heal:1},
-  n:'Retakan mikro pada lantai beton (Self-Healing) perlahan menutup saat terkena air hujan.'}]}};
-
-const INFO={
- bowl:['Amfiteater','Cekungan melingkar berundak.','Panggung saat kering; retensi pertama saat banjir.',[20,20,25,0,-2,0]],
- hall:['Food Hall','Paviliun utama di dek +2,6m.','Pasar kuliner; menjadi dapur umum/posko saat banjir.',[-30,20,35,-20,2,-10]],
- lib:['Perpustakaan','Ruang baca di dek +2,6m.','Ruang belajar; dingin berkat pendinginan evaporatif.',[30,20,35,10,4,-10]],
- facade:['Beehive Cooling','Hexagon keramik porous (Terakota).','Dibasahi air; penguapan mendinginkan udara.',[45,15,10,17,4,2]],
- deck_crack:['Self-Healing','Beton dengan bakteri.','Menutup retakan mikro secara mandiri saat basah.',[20,15,15,-5,2,5]]};
-
-let T={...D0},mode=null,idx=0,playing=true,tm=0,follow=true,time=0,dt=0,focus=new Set(),hoverKey=null,lastWet=0;
-const V={w:-3.0,wet:0,tankA:20,tankB:20,xray:0,crack:0,heal:0,pond:0};
-const gp=new THREE.Vector3(...OV.slice(0,3)),gt=new THREE.Vector3(...OV.slice(3));
-camera.position.copy(gp);controls.target.copy(gt);
-const STEP_MS=14000,xr=$('#xr'),lb=$('#lb');
-const camTo=c=>{gp.set(c[0],c[1],c[2]);gt.set(c[3],c[4],c[5])};
-
-function goStep(i,user){const m=MODES[mode],st=m.steps[i];idx=i;tm=0;T={...D0,...st.s};
- focus=new Set(st.f);camTo(st.c);if(user)follow=true;xr.checked=!!st.s.x||st.s.pMode!==''||st.s.w<-3;$('#info').hidden=true;
- $('#sc').textContent=`${m.n} · Langkah ${i+1}/${m.steps.length}`;$('#st').textContent=st.t;$('#sn').textContent=st.n;
- $('#bk').disabled=i===0;$('#nx').disabled=i===m.steps.length-1;$('#hs').textContent=`${m.n} ${i+1}/${m.steps.length}`;
- balloonText = st.n; typedChars = 0; bContent.textContent = ""; bTitle.textContent = st.t; balloon.style.opacity = 1;
+// 4. Sampah Hanyut (Floating Trash)
+const trashGroup = new THREE.Group();
+scene.add(trashGroup);
+const trashItems = [];
+const trashMats = [M(0xe11d48, 0.8), M(0xfacc15, 0.8), M(0x3b82f6, 0.8)]; 
+for(let i=0; i<40; i++){
+    const geo = Math.random() > 0.5 ? new THREE.BoxGeometry(0.6, 0.2, 0.6) : new THREE.PlaneGeometry(0.7, 0.7);
+    const mesh = new THREE.Mesh(geo, trashMats[i%3]);
+    mesh.castShadow = true;
+    trashItems.push(mesh);
+    trashGroup.add(mesh);
 }
-function startMode(k){mode=k;$('#step').hidden=false;playing=true;$('#pp').textContent='⏸ Jeda';
- document.querySelectorAll('#modes button').forEach(b=>b.classList.toggle('on',b.dataset.k===k));goStep(0,true)}
-function closeMode(){mode=null;T={...D0};focus=new Set();$('#step').hidden=true;$('#hs').textContent='Standby';$('#info').hidden=true;
- document.querySelectorAll('#modes button').forEach(b=>b.classList.remove('on')); balloon.style.opacity = 0;}
-function reset(){closeMode();xr.checked=false;lb.checked=true;Object.assign(V,{w:-3.0,wet:0,tankA:20,tankB:20,xray:0,crack:0,heal:0,pond:0});camTo(OV);camera.position.copy(gp);controls.target.copy(gt);follow=true}
-function showInfo(k){const d=INFO[k];if(!d)return;$('#it').textContent=d[0];$('#ib').textContent=d[1];$('#if').textContent=d[2];$('#info').hidden=false;
- if(mode) closeMode(); focus=new Set([k]);if(d[4])xr.checked=true;camTo(d[3]);follow=true}
-function closeInfo(){$('#info').hidden=true;focus=new Set(mode?MODES[mode].steps[idx].f:[])}
+trashGroup.visible = false;
 
-for(const k in MODES){const b=document.createElement('button');b.dataset.k=k;b.textContent=`${MODES[k].i} ${MODES[k].n}`;b.onclick=()=>startMode(k);$('#modes').appendChild(b)}
-$('#reset').onclick=reset;$('#cl').onclick=closeMode;
-$('#bk').onclick=()=>idx>0&&goStep(idx-1,true);$('#nx').onclick=()=>idx<MODES[mode].steps.length-1&&goStep(idx+1,true);
-$('#pp').onclick=()=>{if(!playing&&idx===MODES[mode].steps.length-1&&tm>=STEP_MS)goStep(0,true);playing=!playing;$('#pp').textContent=playing?'⏸ Jeda':'▶ Putar'};
-$('#ic').onclick=closeInfo;
-$('#col').onclick=()=>{const p=$('#panel');p.classList.toggle('collapsed');$('#col').textContent=p.classList.contains('collapsed')?'▸':'▾'};
-if(innerWidth<700)$('#col').click();
+/* ---------- 5. SISTEM AIR: pipa + tangki ---------- */
+const mkPath=p=>{const cp=new THREE.CurvePath();for(let i=0;i<p.length-1;i++)cp.add(new THREE.LineCurve3(p[i],p[i+1]));return cp};
+function pipe(pts,color){
+  const v=pts.map(p=>new THREE.Vector3(...p)),cp=mkPath(v),mat=new THREE.MeshStandardMaterial({color,emissive:color,emissiveIntensity:.9,roughness:.35,transparent:true,opacity:.6,depthWrite:false});
+  const m=new THREE.Mesh(new THREE.TubeGeometry(cp,Math.round(cp.getLength()*5),.27,14,false),mat);m.castShadow=true;scene.add(m);
+  v.forEach(p=>{const s=new THREE.Mesh(new THREE.SphereGeometry(.29,14,10),mat);s.position.copy(p);scene.add(s)});
+  return cp;
+}
+const pathA=pipe([[-11.5,7.03,-8.5],[-16.5,7.03,-8.5],[-16.5,-2.4,-8.5],[-22.2,-2.4,-8.5]],0x00e5ff);   
+const pathB=pipe([[0,-1.95,-2.5],[0,-3,-2.5],[0,-3,8],[-9,-3,8],[-15,-3,8],[-15,-3,14],[-22.2,-3,14]],0xff7a00); 
 
-controls.addEventListener('start', () => { follow = false; });
+for(const [x,y,z,c] of[[-11.5,7.0,-8.5,0x00e5ff],[0,-2.08,-2.5,0xff7a00]]){const d=new THREE.Mesh(new THREE.CylinderGeometry(.65,.65,.06,24),M(0x222629,.5,.7));d.position.set(x,y,z);scene.add(d);const rg=new THREE.Mesh(new THREE.TorusGeometry(.65,.08,8,24),M(c));rg.rotation.x=Math.PI/2;rg.position.set(x,y+.03,z);scene.add(rg)}
 
-const ray=new THREE.Raycaster(),mp=new THREE.Vector2();
-let dx0=0,dy0=0;
-function hit(e){mp.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);ray.setFromCamera(mp,camera);
- for(const h of ray.intersectObjects(pick,false)){const k=h.object.userData.key;if(h.object.parent && h.object.parent.visible === false) continue; return k}return null}
-const cv=renderer.domElement;
-cv.addEventListener('pointerdown',e=>{dx0=e.clientX;dy0=e.clientY});
-cv.addEventListener('pointermove',e=>{if(e.buttons)return;hoverKey=hit(e);cv.style.cursor=hoverKey?'pointer':'grab';});
-cv.addEventListener('pointerup',e=>{if(Math.hypot(e.clientX-dx0,e.clientY-dy0)>5)return;const k=hit(e);k?showInfo(k):closeInfo()});
-function resize(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();}
+function tank(x,z,col){
+  const out=new THREE.Mesh(new THREE.CylinderGeometry(1.8,1.8,3.2,32),new THREE.MeshStandardMaterial({color:0xaab4b8,transparent:true,opacity:.35,roughness:.2,depthWrite:false}));
+  out.position.set(x,-2,z);out.renderOrder=3;scene.add(out);
+  const fill=new THREE.Mesh(new THREE.CylinderGeometry(1.65,1.65,3,32),M(col,.3));fill.position.set(x,-3.5,z);fill.scale.y=.001;scene.add(fill);
+  return fill;
+}
+const fillA=tank(-24,-8.5,0x00e5ff),fillB=tank(-24,14,0xff7a00);
+
+const dot=(()=>{const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d');g.fillStyle='#fff';g.beginPath();g.arc(32,32,28,0,7);g.fill();return new THREE.CanvasTexture(c)})();
+function flow(path,color,fillMesh){
+  const N=90,geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(new Float32Array(N*3),3));
+  const pts=new THREE.Points(geo,new THREE.PointsMaterial({color,size:.95,map:dot,alphaTest:.4,transparent:true,sizeAttenuation:true}));
+  pts.frustumCulled=false;pts.visible=false;scene.add(pts);
+  return{path,pts,N,on:false,fill:0,fillMesh,off:Array.from({length:N},(_,i)=>i/N)};
+}
+const flows={A:flow(pathA,0xb3f7ff,fillA),B:flow(pathB,0xffd09a,fillB)};
+
+const waterM=new THREE.MeshPhysicalMaterial({color:0x2d86ab,transparent:true,opacity:.62,roughness:.08,clearcoat:1,depthWrite:false});
+const water=new THREE.Mesh(new THREE.BoxGeometry(59.9,1,59.9),waterM);water.renderOrder=2;scene.add(water);
+let level=-2.5,target=-2.5;
+function setWater(){const H=level+GD;water.scale.y=H;water.position.y=-GD+H/2}
+setWater();
+
+function label(txt,col,x,y,z){const c=document.createElement('canvas');c.width=300;c.height=64;const g=c.getContext('2d');g.font='600 34px sans-serif';g.fillStyle=col;g.textBaseline='middle';g.fillText(txt,6,32);const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthTest:false,toneMapped:false}));sp.scale.set(5.6,1.2,1);sp.center.set(0,.5);sp.position.set(x,y,z);sp.renderOrder=9;scene.add(sp)}
+box(.12,6.2,.12,27,.6,27,steel,false);
+for(const [y,c,t] of[[0,0x333333,'±0,0 tanah'],[BFE,0x1d6f93,'BFE +2,0 m'],[DFE,0xb04a22,'DFE +2,6 m']]){box(1,.06,.06,27.5,y,27,M(c),false);label(t,'#'+c.toString(16).padStart(6,'0'),28.1,y,27)}
+
+/* ---------- UI ---------- */
+const hud={lv:$('#lv'),st:$('#st'),dk:$('#dk')};
+function updateHUD(){
+  hud.lv.textContent=fmt(level);
+  const rising=Math.abs(target-level)>.001;
+  hud.st.textContent=level<=-2.4&&target<-2.4?'Normal':rising?(target>level?'Air naik…':'Air surut…'):level>=BFE-.01?'Banjir maksimum (BFE)':'Genangan';
+  const g=DFE-level;
+  hud.dk.innerHTML=level<-.01?'Amfiteater <b>kering</b> · dek <b>kering</b>':level<DFE?`Amfiteater &amp; kolong <b style="color:#4fb3d9">tergenang</b> · dek <b>kering</b> (jarak ${g.toFixed(1).replace('.',',')} m)`:'Dek tergenang';
+}
+
+function setXray(on){
+  xm.forEach(m=>{
+    m.transparent=on;
+    m.opacity=on?.16:1;
+    m.depthWrite=!on;
+    m.needsUpdate=true;
+  });
+}
+
+let sim=false;
+$('#start').onclick=()=>{document.getElementById('deck').classList.add('hide');document.body.classList.add('sim');sim=true;resize()};
+$('#bk').onclick=()=>{document.getElementById('deck').classList.remove('hide');document.body.classList.remove('sim');sim=false;window.__go(3)};
+
+function resize(){const w=innerWidth,h=innerHeight;renderer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix()}
 addEventListener('resize',resize);resize();
 
-const clock=new THREE.Clock(),tv=new THREE.Vector3(),grassB=new THREE.Color(C.moss),mudC=new THREE.Color(0x292524);
-renderer.setAnimationLoop(()=>{
- dt=Math.min(clock.getDelta(),.05);time+=dt;
- if(mode&&playing){const n=MODES[mode].steps.length;tm+=dt*1000;if(tm>=STEP_MS){if(idx<n-1)goStep(idx+1,false);else{playing=false;tm=STEP_MS;$('#pp').textContent='▶ Ulang'}}}
- $('#sb').style.width=mode?((idx+Math.min(tm/STEP_MS,1))/MODES[mode].steps.length*100)+'%':'0';
+/* ================= STEP-BY-STEP PRESENTATION ================= */
+const DEF={water:-2.5,rain:0,fA:0,fB:0,pA:0,pB:0,pC:0,pD:0,pE:0,wet:0,cool:0,pond:0,crack:0, trash:0, rockflow:0};
+const S={...DEF};
+const HOME=[[40,22,44],[0,1,-2]];
+const MODES={
+  banjir:{label:'Banjir',from:-2.5,steps:[
+    {t:'Kondisi Kering',x:'Ruang komunal berfungsi normal, amfiteater digunakan warga.',cam:[[38,16,40],[0,0,-4]],s:{water:-2.5},xr:false},
+    {t:'Hujan & Luapan',x:'Air limpasan mulai mengisi cekungan amfiteater. Sampah ikut terbawa arus.',cam:[[22,12,22],[0,-1,-2]],s:{water:-.5,rain:1, trash:1},xr:false},
+    {t:'Air Memenuhi Amfiteater',x:'Amfiteater terendam, lantai dek +2,6 m tetap aman.',cam:[[26,11,24],[0,1,-3]],s:{water:0,rain:1, trash:1},xr:false},
+    {t:'Mencapai BFE +2,0 m',x:'Kolong bangunan terendam (Wet Floodproofing), struktur utama tetap kering.',cam:[[38,5,22],[0,1.5,-6]],s:{water:2, trash:1},xr:false}]},
+  drainase:{label:'Drainase & Sampah',from:0,steps:[
+    // KAMERA: Tepat di depan mulut amfiteater, melihat ke bawah ke Trash Rack
+    {t:'Penyaringan Sampah',x:'Air surut membawa sampah limpasan. Trash rack (saringan logam) menahan sampah agar tidak menyumbat aliran amfiteater.',cam:[[0, 3, 4], [0, -1.9, -6]],s:{water:-1.0, trash:2},xr:false},
+    {t:'Resapan Rockflow',x:'Air dari amfiteater dialirkan ke Rockflow (batu berongga) di bawah tanah sebagai buffer sebelum masuk ke tangki.',cam:[[-5,8,18],[-12,-2,8]],s:{water:-2.5, rockflow:1, pB:1},xr:true},
+    {t:'Filtrasi & Tangki B',x:'Dari Rockflow, air dipompa melewati filtrasi menuju Tangki B.',cam:[[-6,10,34],[-18,-2,14]],s:{water:-2.5,pB:1,fB:.6, rockflow:1},xr:true},
+    {t:'Overflow',x:'Kelebihan air dialirkan ke kolam retensi.',cam:[[-30,12,38],[-20,-1,18]],s:{water:-2.5,pB:1,pE:1,fB:1,pond:1, rockflow:1},xr:true}]},
+  panen:{label:'Panen Air Hujan',from:-2.5,steps:[
+    {t:'Hujan di Green Roof',x:'Air ditahan media tanam blue-green roof.',cam:[[-20,17,8],[-6,5,-12]],s:{rain:1},xr:false},
+    {t:'Filtrasi & Tangki A',x:'Air atap mengalir ke Tangki A untuk kebutuhan non-potabel.',cam:[[-36,9,2],[-19,1,-9]],s:{rain:1,pA:1,fA:.8},xr:true},
+    {t:'Distribusi',x:'Air digunakan kembali untuk toilet dan irigasi.',cam:[[-30,10,0],[-16,3,-11]],s:{pC:1,fA:.8},xr:true}]},
+  beehive:{label:'Beehive Cooling',from:2.0,steps:[
+    {t:'Pembasahan Fasad',x:'Air membasahi fasad keramik berpori.',cam:[[-27,9,-3],[-12,4,-12]],s:{pC:1,pD:1,fA:.8,wet:1},xr:false},
+    {t:'Penguapan',x:'Udara panas menyentuh fasad terakota yang basah, air menguap dan menyerap kalor, lalu udara sejuk mengalir masuk ke ruangan.',cam:[[-24,8,8],[-14,4,-12]],s:{pD:1,fA:.8,wet:1,cool:1},xr:false}]},
+  pasca:{label:'Pascabanjir',from:2.0,steps:[
+    // KAMERA: Melihat area pengeringan sampah
+    {t:'Pengeringan & Pembersihan',x:'Air surut. Sampah yang tertahan di trash rack dipindahkan ke area penjemuran sedimen & sampah sementara.',cam:[[-10, 5, 10], [-15, 0, 4]],s:{water:-2.5, trash:3},xr:false},
+    {t:'Posko',x:'Food Hall beralih fungsi jadi posko, beton self-healing menutup retakan.',cam:[[6,9,16],[-11,2.6,-2]],s:{water:-2.5,crack:1, trash:3},xr:false}]}
+};
 
- V.w=mv(V.w,T.w,.55*dt);V.tankA=mv(V.tankA,T.tankA,6*dt);V.tankB=mv(V.tankB,T.tankB,6*dt);
- V.wet=mv(V.wet,T.wet,.35*dt);V.crack=mv(V.crack,T.crack,1.5*dt);V.heal=mv(V.heal,T.heal,1.5*dt);
- V.pond=mv(V.pond,T.pond||0,2*dt);
+const pathC=pipe([[-22.8,-1.2,-9.8],[-15.5,-1.2,-9.8],[-15.5,6.05,-9.8],[-12.7,6.05,-9.8]],0x38f2d0);   
+const pathD=pipe([[-12.7,6.05,-15.4],[-12.7,6.05,-8.6]],0x38f2d0);                                    
+const pathE=pipe([[-23.1,-1.2,15.5],[-17,-1.2,15.5],[-17,-1.2,24],[-17,.04,24]],0xd946ef);            
+flows.C=flow(pathC,0xb3f7ff,null);flows.D=flow(pathD,0xb3f7ff,null);flows.E=flow(pathE,0xf3a6ff,null);
+const FK={A:'pA',B:'pB',C:'pC',D:'pD',E:'pE'};
 
- const isXray = xr.checked || T.pMode !== '';
- V.xray = mv(V.xray, isXray ? 1 : 0, 3*dt);
- mGrass.userData.b=1-.88*V.xray;
- mGrass.color.copy(grassB).lerp(mudC,V.crack*.5);
+const pond=new THREE.Mesh(new THREE.CylinderGeometry(4,4,.12,40),new THREE.MeshStandardMaterial({color:0x3a8fb0,roughness:.1,metalness:.1}));
+pond.position.set(-17,.02,24);pond.scale.set(.001,1,.001);pond.visible=false;pond.receiveShadow=true;scene.add(pond);
 
- let activeCurve = null;
- for (const [key, group] of Object.entries(pipeGroups)) { group.visible = false; }
+const RN=1400,rp=new Float32Array(RN*6),rs=new Float32Array(RN),rx=new Float32Array(RN),rz=new Float32Array(RN),ry=new Float32Array(RN);
+for(let i=0;i<RN;i++){rx[i]=(Math.random()-.5)*64;rz[i]=(Math.random()-.5)*64;ry[i]=Math.random()*30;rs[i]=24+Math.random()*10}
+const rainGeo=new THREE.BufferGeometry();rainGeo.setAttribute('position',new THREE.BufferAttribute(rp,3));
+const rainMat=new THREE.LineBasicMaterial({color:0x9db7c6,transparent:true,opacity:0});
+const rain=new THREE.LineSegments(rainGeo,rainMat);rain.frustumCulled=false;rain.visible=false;scene.add(rain);
 
- if (T.pMode === 'pathA') { pipeGroups['pipe_pathA'].visible = true; activeCurve = cvA; }
- else if (T.pMode === 'pathB') { pipeGroups['pipe_pathB'].visible = true; activeCurve = cvB; }
- else if (T.pMode === 'bee') { pipeGroups['pipe_bee'].visible = true; activeCurve = cvBee; }
+const CN=160,cpos=new Float32Array(CN*3),cg=new THREE.BufferGeometry();cg.setAttribute('position',new THREE.BufferAttribute(cpos,3));
+const cseed=Array.from({length:CN},()=>({u:Math.random(),y:3+Math.random()*3,z:-15.6+Math.random()*7.2}));
+const coolMat=new THREE.PointsMaterial({color:0x5fe3ff,size:.55,map:dot,alphaTest:.3,transparent:true,opacity:0,sizeAttenuation:true,depthWrite:false,depthTest:false});
+const coolP=new THREE.Points(cg,coolMat);coolP.frustumCulled=false;coolP.visible=false;coolP.renderOrder=10;scene.add(coolP);
+const HN=150,hpos=new Float32Array(HN*3),hcol=new Float32Array(HN*3),hg=new THREE.BufferGeometry();
+hg.setAttribute('position',new THREE.BufferAttribute(hpos,3));hg.setAttribute('color',new THREE.BufferAttribute(hcol,3));
+const hseed=Array.from({length:HN},()=>({u:Math.random(),y:2.9+Math.random()*3.2,z:-15.6+Math.random()*7.4}));
+const hotMat=new THREE.PointsMaterial({size:.65,map:dot,alphaTest:.3,transparent:true,opacity:0,vertexColors:true,sizeAttenuation:true,depthWrite:false});
+const hotP=new THREE.Points(hg,hotMat);hotP.frustumCulled=false;hotP.visible=false;scene.add(hotP);
 
- pipeMaterials.forEach(m => {
-    if (T.pMode) { m.emissiveIntensity = 1.5 + Math.sin(time * 8) * 0.5; }
-    else { m.emissiveIntensity = 0.2; }
- });
+const crackMat=new THREE.LineBasicMaterial({color:0x1a1a1a,transparent:true,opacity:1}),crackG=new THREE.Group(),crackL=[];
+function mkCrack(x,z,a,len,n){
+  const pts=[];let cx=x,cz=z;
+  for(let i=0;i<=n;i++){pts.push([cx,cz]);a+=(Math.random()-.5)*1.0;cx+=Math.cos(a)*len/n;cz+=Math.sin(a)*len/n}
+  for(const off of[0,.03,-.03]){
+    const g=new THREE.BufferGeometry().setFromPoints(pts.map(q=>new THREE.Vector3(q[0]+off,DFE+.025,q[1])));
+    const l=new THREE.Line(g,crackMat);l.userData.n=pts.length;crackG.add(l);crackL.push(l);
+  }
+}
+mkCrack(-12.6,-5.5,1.3,5.5,14);mkCrack(-11.2,-4.2,1.7,4.5,10);mkCrack(-12.9,-1,.3,2.2,6);mkCrack(12.6,-5.5,1.8,5.5,14);
+crackG.visible=false;scene.add(crackG);
+const healC=new THREE.Color(0x6fd08c),darkC=new THREE.Color(0x1a1a1a);
+const terraDry=new THREE.Color(0xc4643a),terraWet=new THREE.Color(0x5e2c1d);
+const dayC=new THREE.Color(0xe0f2fe),rainC=new THREE.Color(0xa3b0b7);
+let rainK=0,wetK=0,coolK=0,pondK=0;
 
- for(const k in G){
-   const g=G[k];
-   let targetOpacity = (!focus.size||focus.has(k)||KEEP.has(k)) ? 1 : 0.25;
-   if (T.pMode) {
-     if (k.includes('pipe_') || k === 'tank' || k === 'filter' || k === 'pond' || k === 'tankA' || k === 'tankB') targetOpacity = 1;
-     else targetOpacity = 0.15;
-   }
-   g.dim += (targetOpacity-g.dim)*Math.min(1,dt*6);
-   let pe = 0;
-   if(focus.has(k) && !KEEP.has(k) && !T.pMode) pe = 0.1 + 0.08*Math.sin(time*4);
-   if(hoverKey===k && !KEEP.has(k)) pe = 0.3;
-   for(const m of g.m){
-     const o=m.userData.b*g.dim;
-     m.opacity=o;
-     m.transparent=o<.995;
-     m.depthWrite=!m.transparent;
-     if(m.emissive && !k.includes('pipe_')) m.emissiveIntensity = pe;
-   }
- }
+let mode=null,idx=0,stepT=0,playing=false,done=false,flyT=0;
+const goalP=new THREE.Vector3(),goalT=new THREE.Vector3(),$b=$('#bubble'),pg=$('#pg');
 
- mCrack.opacity = V.crack;
- mCrack.emissiveIntensity = V.heal * (0.5 + 0.5*Math.sin(time*4));
- const w=V.w;
- tankWater[0].mesh.scale.y = Math.max(.01, 2.8*V.tankA/100);
- tankWater[1].mesh.scale.y = Math.max(.01, 2.8*V.tankB/100);
+function ui(){
+  const n=mode.steps.length,s=mode.steps[idx];
+  $('#bs').textContent='Step '+(idx+1)+' dari '+n+' · '+mode.label;$('#bt').textContent=s.t;$('#bx').textContent=s.x;
+  $('#cm').textContent=mode.label+' · Step '+(idx+1)+'/'+n;
+  $('#pz').textContent=done?'↻ Putar Ulang':playing?'⏸ Jeda':'▶ Lanjutkan';
+  $('#pv').disabled=idx===0;$('#nx').disabled=idx>=n-1;
+}
+function applyStep(i){
+  idx=Math.max(0,Math.min(mode.steps.length-1,i));stepT=0;done=false;
+  const s=mode.steps[idx];Object.assign(S,DEF,s.s);target=S.water;
+  
+  if(s.xr!==undefined) setXray(s.xr);
+  
+  goalP.set(...s.cam[0]);goalT.set(...s.cam[1]);flyT=3;
+  ui();$b.classList.remove('pop');void $b.offsetWidth;$b.classList.add('pop');
+}
+function startMode(k){
+  mode=MODES[k];playing=true;
+  Object.assign(S,DEF);level=mode.from;setWater();flows.A.fill=flows.B.fill=0;wetK=0;pondK=0;
+  $('#modes').style.display='none';$('#ctl').style.display='block';$b.classList.add('show');
+  applyStep(0);
+}
+function closeMode(){
+  if(!mode)return;mode=null;playing=false;done=false;Object.assign(S,DEF);target=-2.5;
+  setXray(false);
+  goalP.set(...HOME[0]);goalT.set(...HOME[1]);flyT=3;
+  $('#ctl').style.display='none';$('#modes').style.display='block';$b.classList.remove('show');pg.style.width='0';
+}
+document.querySelectorAll('#modes .mb').forEach(b=>b.onclick=()=>startMode(b.dataset.m));
+$('#pv').onclick=()=>{applyStep(idx-1);playing=true;ui()};
+$('#nx').onclick=()=>{applyStep(idx+1);playing=true;ui()};
+$('#pz').onclick=()=>{if(done){applyStep(0);playing=true}else playing=!playing;ui()};
+$('#cl').onclick=closeMode;
+{const old=$('#bk').onclick;$('#bk').onclick=()=>{closeMode();old()}}
 
- flood.visible=w>-3.0;
- if(flood.visible){
-    flood.position.y=w;
-    for(let i=0;i<wpos.count;i++) wpos.setY(i,.05*Math.sin(wbx[i]*.4+time*1.6)+.04*Math.cos(wbz[i]*.5+time*1.2));
-    wpos.needsUpdate=true;
- }
+function modeFrame(dt,t){
+  if(mode&&playing&&!done){
+    stepT+=dt;
+    if(stepT>=10){stepT=10;if(idx<mode.steps.length-1)applyStep(idx+1);else{done=true;playing=false;ui()}}
+  }
+  if(mode)pg.style.width=((idx+stepT/10)/mode.steps.length*100)+'%';
+  if(flyT>0){flyT-=dt;const k=1-Math.exp(-dt*2.4);camera.position.lerp(goalP,k);controls.target.lerp(goalT,k)}
+  const e=Math.min(1,dt*2);
+  
+  rainK+=((S.rain?1:0)-rainK)*e;rain.visible=rainK>.02;rainMat.opacity=.6*rainK;
+  scene.background.lerpColors(dayC,rainC,rainK);scene.fog.color.copy(scene.background);sun.intensity=2.4-1.1*rainK;
+  if(rain.visible){
+    for(let i=0;i<RN;i++){ry[i]-=rs[i]*dt;if(ry[i]<-2)ry[i]=30;const j=i*6;rp[j]=rx[i];rp[j+1]=ry[i];rp[j+2]=rz[i];rp[j+3]=rx[i]+.12;rp[j+4]=ry[i]+.9;rp[j+5]=rz[i]}
+    rainGeo.attributes.position.needsUpdate=true;
+  }
 
- if(Math.abs(V.wet - lastWet) > 0.002){
-    mTerra.color.setHex(V.wet > 0.5 ? 0x78350f : C.terra);
-    lastWet = V.wet;
- }
+  wetK+=((S.wet?1:0)-wetK)*Math.min(1,dt*.7);terra.color.copy(terraDry).lerp(terraWet,wetK);terra.roughness=.9-.55*wetK;
 
- P.forEach((p,i)=>{let x=p.x,z=p.z,bob=0;
-  if(p.t==='j'){p.a+=dt*p.sp;x=Math.cos(p.a)*p.r;z=Math.sin(p.a)*p.r;bob=Math.abs(Math.sin(time*7+p.ph))*.08}
-  const sc=p.g&&w>p.y+.15?.001:1,sit=p.s;
-  put(bodies,i,x,p.y+bob+(sit?p.sh+.38:.55),z,sc,sc*(sit?.72:1));put(heads,i,x,p.y+bob+(sit?p.sh+.86:1.22),z,sc)});
- bodies.instanceMatrix.needsUpdate=heads.instanceMatrix.needsUpdate=true;
+  coolK+=((S.cool?1:0)-coolK)*e;coolP.visible=hotP.visible=coolK>.02;coolMat.opacity=.9*coolK;hotMat.opacity=.95*coolK;
+  if(coolP.visible){
+    for(let i=0;i<CN;i++){const c=cseed[i],u=(c.u+t*.2)%1,side=i%2?1:-1,S0=side<0?12.4:12.9;
+      cpos[i*3]=side*(S0-u*9);cpos[i*3+1]=c.y+Math.sin(t*2.2+i)*.12;cpos[i*3+2]=c.z+Math.sin(u*9+i)*.25}
+    cg.attributes.position.needsUpdate=true;
+    for(let i=0;i<HN;i++){const h=hseed[i],u=(h.u+t*.16)%1,side=i%2?1:-1,E=side<0?12.45:12.95;
+      hpos[i*3]=side*(30-u*(30-E));hpos[i*3+1]=h.y+Math.sin(t*1.5+i)*.2;hpos[i*3+2]=h.z;
+      const w=Math.max(0,(u-.86)/.14);hcol[i*3]=1-.6*w;hcol[i*3+1]=.28+.6*w;hcol[i*3+2]=.08+.92*w}
+    hg.attributes.position.needsUpdate=true;hg.attributes.color.needsUpdate=true;
+  }
 
- if(T.rain){
-   for(let i=0;i<rainCount;i++){
-     r_y[i] -= r_vel[i]*dt;
-     if(r_y[i] < -3.0) { r_y[i] = rnd(20,25); r_x[i]=rnd(-40,40); r_z[i]=rnd(-30,30); }
-     const idx2 = i*6;
-     rainPos[idx2] = r_x[i]; rainPos[idx2+1] = r_y[i]; rainPos[idx2+2] = r_z[i];
-     rainPos[idx2+3] = r_x[i]; rainPos[idx2+4] = r_y[i]-1.5; rainPos[idx2+5] = r_z[i];
-   }
-   rainGeo.attributes.position.needsUpdate = true; rain.visible = true;
- } else rain.visible = false;
+  pondK+=((S.pond?1:0)-pondK)*Math.min(1,dt*1.2);pond.visible=pondK>.01;pond.scale.set(Math.max(.001,pondK),1,Math.max(.001,pondK));
 
- const k=1-Math.exp(-dt*2.2);if(follow){camera.position.lerp(gp,k);controls.target.lerp(gt,k)}
- controls.update();
- $('#hw').textContent=(w>=0?'+':'−')+Math.abs(w).toFixed(2).replace('.',',')+' m';$('#ht').textContent=Math.round(V.tankA)+'%';
+  crackG.visible=!!S.crack;
+  if(S.crack){
+    const g=Math.min(1,stepT/3),h=Math.max(0,Math.min(1,(stepT-6)/3.5));
+    crackMat.opacity=1-h;crackMat.color.copy(darkC).lerp(healC,h);
+    crackL.forEach(l=>l.geometry.setDrawRange(0,Math.max(2,Math.ceil(l.userData.n*g))));
+  }
 
- if(mode && balloonText) {
-     if (typedChars < balloonText.length) { typedChars += dt * 60; bContent.textContent = balloonText.slice(0, Math.floor(typedChars)); }
- } else { balloon.style.opacity = 0; }
+  rfWater.position.y += ((S.rockflow ? -0.1 : -1.8) - rfWater.position.y) * dt * 3;
+  rfWater.visible = S.rockflow > 0 || rfWater.position.y > -1.7;
 
- for(const l of LB){if(!lb.checked){l.e.style.display='none';continue}
-  tv.set(...l.p).project(camera);if(tv.z>1){l.e.style.display='none';continue}
-  l.e.style.display='block';l.e.style.transform=`translate(${(tv.x*.5+.5)*innerWidth}px,${(-tv.y*.5+.5)*innerHeight}px) translate(-50%,-50%)`}
+  trashGroup.visible = S.trash > 0;
+  if(S.trash > 0) {
+    trashItems.forEach((item, i) => {
+      let targetPos = new THREE.Vector3();
+      
+      if(S.trash === 1) { // Terapung di amfiteater
+        targetPos.set(Math.sin(i*13.7 + t)*8, level + 0.15, AZ - 2 + (Math.cos(i*7.1 + t)*8));
+        item.position.lerp(targetPos, dt * 2);
+      } else if(S.trash === 2) { // Tertahan di Trash Rack (Bawah)
+        targetPos.set(-3.5 + (i % 15)*0.5, TOP[5] + 0.35, AZ - 2.0 + (Math.floor(i/15))*0.5);
+        item.position.lerp(targetPos, dt * 2);
+      } else { // Sampah Terbang ke Area Pengeringan
+        targetPos.set(-15 + (i%6)*1.2, 0.55, 4 + Math.floor(i/6)*1.2);
+        
+        // TRIK: Terbang lurus ke atas dulu agar tidak menembus dek beton
+        if (item.position.y < 3.5) {
+            item.position.y += dt * 5.0; // Naik cepat
+        } else {
+            // Setelah di atas dek, baru bergerak horizontal ke bak
+            item.position.lerp(targetPos, dt * 1.5);
+        }
+      }
+      
+      item.rotation.x += dt; item.rotation.y += dt*0.5;
+    });
+  }
 
- renderer.render(scene,camera);
-});
+  flows.A.fill+=(S.fA-flows.A.fill)*Math.min(1,dt*.6);flows.B.fill+=(S.fB-flows.B.fill)*Math.min(1,dt*.6);
+  for(const k in flows){
+    const f=flows[k];f.on=!!S[FK[k]];f.pts.visible=f.on;
+    if(f.on){const pos=f.pts.geometry.attributes.position;for(let i=0;i<f.N;i++){f.path.getPointAt((f.off[i]+t*.09)%1,tmp);pos.setXYZ(i,tmp.x,tmp.y,tmp.z)}pos.needsUpdate=true}
+    if(f.fillMesh){f.fillMesh.scale.y=Math.max(.001,f.fill);f.fillMesh.position.y=-3.5+1.5*f.fill}
+  }
+}
+
+const clock=new THREE.Clock(),tmp=new THREE.Vector3();
+(function tick(){
+  requestAnimationFrame(tick);
+  const dt=Math.min(clock.getDelta(),.05),t=clock.elapsedTime;
+  if(!sim)return;
+  if(level!==target){const st=.6*dt,d=target-level;level=Math.abs(d)<=st?target:level+Math.sign(d)*st;setWater()}
+  water.position.y+=Math.sin(t*1.6)*.004;
+  updateHUD();
+  modeFrame(dt,t);
+  controls.update();renderer.render(scene,camera);
+})();
 </script>
 </body>
 </html>
