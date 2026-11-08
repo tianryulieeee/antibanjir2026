@@ -322,7 +322,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-<!-- ==================== 3D SIMULATION LOGIC (ORGANIC & REALISTIC) ==================== -->
+<!-- ==================== 3D SIMULATION LOGIC (COMPLETE & FIXED) ==================== -->
 <script type="module">
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
@@ -330,17 +330,17 @@ import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 
 const $=s=>document.querySelector(s),rnd=(a,b)=>a+Math.random()*(b-a),mv=(a,b,d)=>a+Math.max(-d,Math.min(d,b-a));
 
-// PALET WARNA BERDASARKAN REFERENSI GAMBAR
+// PALET WARNA (SESUAI REFERENSI ARSITEKTUR)
 const C = {
-    terra: 0xc27a5c,       // Warna tanah liat/terracotta untuk amfiteater
-    concrete: 0xd6d3d1,    // Beton halus terang
+    terra: 0xc27a5c,       // Terracotta amfiteater
+    concrete: 0xd6d3d1,    // Beton terang
     concreteDark: 0x78716c,// Beton gelap
-    wood: 0x78350f,        // Kayu gelap
-    moss: 0x4d7c0f,        // Hijau zaitun/rumput
-    sage: 0x65a30d,        // Hijau sage
-    water: 0x0ea5e9,       // Air biru
-    glass: 0xe2e8f0,       // Kaca
-    metal: 0x475569,       // Baja
+    wood: 0x78350f,        // Kayu
+    moss: 0x4d7c0f,        // Rumput
+    sage: 0x65a30d,        // Tanaman
+    water: 0x1e3a8a,       // Air
+    glass: 0xe2e8f0,       
+    metal: 0x475569,       
     cPathA: 0x2563eb, cPathB: 0xd97706, cBee: 0xb45309, cToilet: 0x0e7490, cGarden: 0x15803d, cOver: 0x7e22ce, cCity: 0x334155
 };
 
@@ -356,7 +356,7 @@ renderer.domElement.style.left = '0';
 renderer.domElement.style.zIndex = '0';
 
 const scene=new THREE.Scene();
-scene.background = new THREE.Color(0xf0f0f0); // Background studio netral
+scene.background = new THREE.Color(0xf0f0f0); 
 scene.fog=new THREE.Fog(0xf0f0f0,150,400);
 
 const pm=new THREE.PMREMGenerator(renderer);
@@ -372,7 +372,7 @@ controls.minDistance=20; controls.maxDistance=160;
 controls.minPolarAngle = 0.1;
 controls.maxPolarAngle = Math.PI/2 - 0.05;
 
-/* ---------- LIGHTING (Architectural Render) ---------- */
+/* ---------- LIGHTING ---------- */
 scene.add(new THREE.AmbientLight(0xffffff, 0.4));
 const hemiLight = new THREE.HemisphereLight(0xddeeff, 0x8a7a6a, 0.8);
 scene.add(hemiLight);
@@ -396,12 +396,10 @@ const pick=[],dm=new THREE.Object3D();
 function M(geo,m,x,y,z,key,par=scene){const o=new THREE.Mesh(geo,m);o.position.set(x,y,z);o.receiveShadow=true;o.castShadow=Array.isArray(m)||m.userData.b===1;
  if(key){o.userData.key=key;pick.push(o)}par.add(o);return o}
 const bx=(w,h,d,m,x,y,z,k)=>M(new THREE.BoxGeometry(w,h,d),m,x,y,z,k);
-function beam(a,b,t,m,key){const A=new THREE.Vector3(...a),B=new THREE.Vector3(...b),o=new THREE.Mesh(new THREE.BoxGeometry(t,t,A.distanceTo(B)),m);
- o.position.copy(A).add(B).multiplyScalar(.5);o.lookAt(B);o.castShadow=o.receiveShadow=true;o.userData.key=key;pick.push(o);scene.add(o)}
 const put=(m,i,x,y,z,s=1,sy=s)=>{dm.position.set(x,y,z);dm.rotation.set(0,0,0);dm.scale.set(s,sy,s);dm.updateMatrix();m.setMatrixAt(i,dm.matrix)};
 
 /* ---------- GROUND & SWALE ---------- */
-const mGrass=mat('ground',C.moss,1,{roughness:1,metalness:0}),mSoil=mat('ground',0x3f3f46,1,{roughness:1});
+const mGrass=mat('ground',C.moss,1,{roughness:1,metalness:0});
 {const ground=new THREE.Mesh(new THREE.PlaneGeometry(200,200),mGrass);
  ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground)}
 
@@ -420,47 +418,36 @@ M(new THREE.BoxGeometry(0.2, 1.5, 6), dryingBedMat, -33, 0.85, -20, 'dryingBed')
 M(new THREE.BoxGeometry(0.2, 1.5, 6), dryingBedMat, -27, 0.85, -20, 'dryingBed');
 M(new THREE.BoxGeometry(6, 1.5, 0.2), dryingBedMat, -30, 0.85, -23, 'dryingBed');
 
-/* ---------- AMFITEATER (ORGANIC SHAPE & TERRACED) ---------- */
-// Membuat lengkungan asimetris (seperti gambar referensi)
-const bowlShape = new THREE.Shape();
-bowlShape.moveTo(-15, -10);
-bowlShape.bezierCurveTo(10, -10, 15, 5, 10, 15);
-bowlShape.bezierCurveTo(5, 25, -10, 15, -15, 10);
-bowlShape.bezierCurveTo(-25, 5, -25, -5, -15, -10);
-
+/* ---------- AMFITEATER (ORGANIC TERRACED) ---------- */
+// Menggunakan lingkaran bertingkat untuk menghindari error Shape
 const mBowl = mat('bowl', C.terra, 1, {side:THREE.DoubleSide, roughness:0.9});
-// Menggunakan extrude bertingkat untuk membuat terasering
 for (let i=0; i<6; i++) {
-    let scale = 1 - i*0.12;
-    let depth = i * 0.6;
-    let geo = new THREE.ExtrudeGeometry(bowlShape, {depth: 0.6, bevelEnabled: false});
+    let radius = 18 - i*2;
+    let depth = -3.2 + i*0.5;
+    let geo = new THREE.CylinderGeometry(radius, radius, 0.5, 64, 1, true);
     let mesh = new THREE.Mesh(geo, mBowl);
-    mesh.rotation.x = -Math.PI/2;
-    mesh.scale.set(scale, scale, 1);
-    mesh.position.y = -3.2 + depth;
+    mesh.position.y = depth;
     mesh.receiveShadow = true;
     mesh.castShadow = true;
-    scene.add(mesh);
+    mesh.userData.key = 'bowl'; pick.push(mesh); scene.add(mesh);
 }
-
 // Dasar Amfiteater
-M(new THREE.PlaneGeometry(30, 30), mat('bowl', C.terra), 0, -3.2, 0, 'bowl').rotation.x = -Math.PI/2;
+M(new THREE.CircleGeometry(8, 64), mat('bowl', C.terra), 0, -3.2, 0, 'bowl').rotation.x = -Math.PI/2;
 
-// Tanaman di Terasering
+// Tanaman di Terasering (Pinggiran)
 const mPlant = mat('plants', C.sage, 1, {flatShading: true});
-for(let i=0; i<40; i++) {
+for(let i=0; i<50; i++) {
     let angle = rnd(0, Math.PI*2);
-    let rad = rnd(10, 18);
-    M(new THREE.ConeGeometry(rnd(0.4, 0.8), rnd(1, 2), 5), mPlant, Math.cos(angle)*rad, rnd(-2.5, 1), Math.sin(angle)*rad, 'plants');
+    let rad = rnd(10, 17);
+    M(new THREE.ConeGeometry(rnd(0.5, 1), rnd(1, 2), 5), mPlant, Math.cos(angle)*rad, rnd(-2, 0.5), Math.sin(angle)*rad, 'plants');
 }
 
-/* ---------- DEK & ATAP MELENGKUNG (CONTINUOUS ROOF) ---------- */
-// Dek organik terangkat
-const deckShape = new THREE.Shape();
-deckShape.moveTo(-35, -25);
-deckShape.splineThru([new THREE.Vector2(0, -30), new THREE.Vector2(35, -25), new THREE.Vector2(40, 0), new THREE.Vector2(30, 25), new THREE.Vector2(0, 30), new THREE.Vector2(-30, 25), new THREE.Vector2(-40, 0)]);
+/* ---------- DEK MELENGKUNG & ATAP ---------- */
+// Dek organik menggunakan RoundRect (lebih stabil)
+const rr = (w,h,r) => {const s=new THREE.Shape();s.moveTo(-w+r,-h);s.lineTo(w-r,-h);s.quadraticCurveTo(w,-h,w,-h+r);s.lineTo(w,h-r);s.quadraticCurveTo(w,h,w-r,h);s.lineTo(-w+r,h);s.quadraticCurveTo(-w,h,-w,h-r);s.lineTo(-w,-h+r);s.quadraticCurveTo(-w,-h,-w+r,-h);return s};
+const deckShape = rr(35, 25, 10);
 const deckHole = new THREE.Path();
-deckHole.absellipse(0, 0, 18, 15, 0, Math.PI*2, true);
+deckHole.absellipse(0, 0, 19, 19, 0, Math.PI*2, true);
 deckShape.holes.push(deckHole);
 
 const mDeck = mat('deck', C.concrete, 1, {roughness: 0.8});
@@ -481,7 +468,7 @@ const roofCurve = new THREE.CatmullRomCurve3([
 const roofTube = new THREE.TubeGeometry(roofCurve, 64, 12, 8, false);
 const mRoof = mat('roof', C.moss, 1, {roughness: 1});
 const roofMesh = new THREE.Mesh(roofTube, mRoof);
-roofMesh.scale.set(1, 0.3, 1); // Pipihkan menjadi atap
+roofMesh.scale.set(1, 0.3, 1); 
 roofMesh.position.y = 2; 
 roofMesh.castShadow = true;
 roofMesh.userData.key = 'roof'; pick.push(roofMesh); scene.add(roofMesh);
@@ -503,7 +490,7 @@ const mCol = mat('under', C.concrete, 1, {roughness:0.9});
 const cp = [];
 for(let i=0; i<20; i++) {
     let angle = i * Math.PI * 2 / 20;
-    let rad = rnd(20, 30);
+    let rad = rnd(22, 30);
     cp.push([Math.cos(angle)*rad, Math.sin(angle)*rad]);
 }
 cp.forEach(([x,z]) => {
@@ -513,9 +500,10 @@ cp.forEach(([x,z]) => {
     col.userData.key = 'under'; pick.push(col); scene.add(col);
 });
 
-/* ---------- PIPES & SISTEM AIR (DISESUAIKAN DENGAN TATA LETAK BARU) ---------- */
-// Karena bangunan bergeser, kita geser posisi tangki dan pipa agar tetap logis
+/* ---------- SISTEM AIR (TANGKI & FILTER) ---------- */
 const filterUnit = M(new THREE.BoxGeometry(4, 2, 3), mat('filter', 0x1e293b, 1, {metalness:0.6, roughness:0.3}), 45, -4, -10, 'filter');
+M(new THREE.BoxGeometry(3.8, 1.8, 2.8), mat('filter', 0x3b82f6, 1, {roughness:0.1, metalness:0.5}), 45, -4, -10, 'filter');
+
 const tk = new THREE.Group(); tk.position.set(45, -4.7, -15); scene.add(tk);
 const tankMetal = mat('tank', C.metal, 1, {metalness: 0.8, roughness: 0.2});
 const tankWater = [];
@@ -533,13 +521,12 @@ const pondBase = M(new THREE.CylinderGeometry(6, 6, 0.5, 32), mat('pondBase', C.
 const pondWater = M(new THREE.CylinderGeometry(5.9, 5.9, 0.4, 32), pondMat, 45, -4.4, 20, 'pond');
 pondWater.scale.y = 0.01;
 
-/* ---------- ORANG, AIR, PARTIKEL (SAMA SEPERTI SEBELUMNYA) ---------- */
+/* ---------- AIR, HUJAN, LOGIKA UI (LENGKAP) ---------- */
 const mWaterFlood = new THREE.MeshStandardMaterial({ color: C.water, emissive: 0x0f172a, transparent: true, opacity: 0.85, roughness: 0.2, metalness: 0.1, depthWrite: false });
 const wg=new THREE.PlaneGeometry(150,150,64,64);wg.rotateX(-Math.PI/2);
 const flood=new THREE.Mesh(wg,mWaterFlood);flood.visible=false;scene.add(flood);
 const wpos=wg.attributes.position,wbx=Float32Array.from(wpos.array.filter((_,i)=>i%3===0)),wbz=Float32Array.from(wpos.array.filter((_,i)=>i%3===2));
 
-// Partikel Hujan
 const rainCount = 1500;
 const rainGeo = new THREE.BufferGeometry();
 const rainPos = new Float32Array(rainCount * 2 * 3); 
@@ -549,18 +536,110 @@ scene.add(rain);
 const r_vel = [], r_x = [], r_y = [], r_z = [];
 for(let i=0;i<rainCount;i++){r_x.push(rnd(-50,50));r_y.push(rnd(-3,25));r_z.push(rnd(-40,40));r_vel.push(rnd(15,25))}
 
-// UI Logic (Sama seperti sebelumnya)
-const LB=[['Blue-green roof',[0,10,0]],['Food Hall',[-20,6,-10]],['Perpustakaan',[20,6,10]],['Lantai DFE +2,6 m',[0,3,-20]],['Fasad keramik',[30,6,20]],['Undercroft',[0,1,-25],0],
+const LB=[['Blue-green roof',[0,10,0]],['Food Hall',[-20,6,-10]],['Perpustakaan',[20,6,10]],['Lantai DFE +2,6 m',[0,3,-20]],['Undercroft',[0,1,-25],0],
  ['Amfiteater',[0,-2,0]],['Lubang drainase',[0,-3,0]],['Jalur A',[30,8,-10]],['Jalur B',[20,-5,0]],['Filtrasi',[45,-4,-10]],['Tangki A',[45,-2.8,-15],1],['Tangki B',[45,-2.8,-10],1],['Rockflow',[-5,-4,10],1],['Kolam Retensi',[45,-3,20]],['Drainase Kota',[55,-4,35]]]
  .map(([t,p,u])=>{const e=document.createElement('div');e.textContent=t;$('#labels').appendChild(e);return{e,p,u:u===1}});
 
-// State & Animation Loop
+const balloon = $('#balloon'), bTitle = $('#bt'), bContent = $('#bc');
+let balloonText = "", typedChars = 0;
+
+// DEFINISI MODES (MENGEMBALIKAN TOMBOL YANG HILANG)
+const D0={w:-3.2,rain:0,whirl:0,pMode:'',air:0,wet:0,tankA:20,tankB:20,mud:0,crack:0,heal:0,inflow:0,trash:0,pond:0},OV=[60,45,70,0,-1,0];
+const MODES={
+flood:{n:'Banjir',i:'🌊',steps:[
+ {t:'Kondisi kering',f:['deck','hall','lib','under','track','people'],c:[40,30,60,0,2,0],s:{w:-3.2,tankA:20,tankB:20},
+  n:'Ruang komunal berdiri kokoh dengan dek di elevasi +2,6 m. Undercroft dan amfiteater berfungsi penuh untuk aktivitas warga.'},
+ {t:'Hujan & Luapan',f:['roof','bowl','track','swale'],c:[30,20,40,0,2,0],s:{w:-1.5,rain:1,inflow:1},
+  n:'Hujan ekstrem atau luapan sungai masuk ke tapak melalui saluran air permukaan (runoff swale). Amfiteater yang menjorok -3,2 m menjadi ruang pertama yang tergenang, mencegah air membanjiri permukiman warga.'},
+ {t:'Air memenuhi Amfiteater',f:['bowl','under'],c:[35,20,35,0,-1,0],s:{w:1.0,rain:1,inflow:1},
+  n:'Air naik secara perlahan. Kolom-kolom ramping di undercroft membiarkan air mengalir bebas tanpa menghalangi, sehingga tidak menimbulkan tekanan yang mendorong air ke rumah tetangga.'},
+ {t:'Mencapai BFE +2,0 m',f:['bfe','deck'],c:[45,15,35,15,2.2,5],s:{w:2.0,rain:1,inflow:1},
+  n:'Muka air berhenti di BFE +2,0 m. Freeboard 0,6 m (selisih ke dek +2,6 m) adalah batas aman. Dek tetap kering dan warga dapat berlindung di atas.'}]},
+drain:{n:'Drainase',i:'💧',steps:[
+ {t:'Penyaringan Sampah',f:['drain','bowl','trashRack','dryingBed'],c:[15,15,15,0,-2,0],s:{w:-1.0,whirl:1,trash:1},
+  n:'Limpasan permukaan masuk melewati saringan sampah (trash rack). Sampah padat tertahan dan dipindahkan ke tempat pengeringan, sedangkan air mengalir ke amfiteater menuju Rockflow.'},
+ {t:'Resapan Rockflow',f:['rock'],c:[25,20,25,0,-4,0],s:{w:-2.0,whirl:1,x:1,trash:1},
+  n:'Air meresap ke lapisan Rockflow (batu berongga) sebagai buffer/infiltrasi. Sedimen halus mengendap di dasar Rockflow.'},
+ {t:'Filtrasi & Tangki B',f:['pipe_pathB','filter','tankB','tankA'],c:[50,25,20,38,-4,0],s:{w:-3.2,pMode:'pathB',tankB:60,x:1,trash:0},
+  n:'Amfiteater dikeringkan! Air dari Rockflow dipompa menuju unit Filtrasi Bertahap (pipa oranye). Setelah bersih, air disimpan ke dalam Tangki B.'},
+ {t:'Overflow ke Retensi',f:['pipe_overflow','pond','tankB','tankA','filter'],c:[50,25,20,38,-4,10],s:{w:-3.2,pMode:'overflow',tankA:95,tankB:95,pond:1,x:1},
+  n:'Jika Tangki A dan B menyisakan sedikit kapasitas (untuk hujan dadakan), pipa overflow (ungu) menyalurkan air berlebih ke Kolam Retensi.'},
+ {t:'Pelepasan ke Kota',f:['pipe_city','pond'],c:[55,20,30,45,-4,25],s:{w:-3.2,pMode:'city',tankA:95,tankB:95,pond:.5,x:1},
+  n:'Dari Kolam Retensi, air dilepas secara perlahan (dikontrol) melalui pipa outlet menuju Drainase Kota. Genangan surut tanpa membebani saluran kota secara mendadak.'}]},
+rain:{n:'Panen Air Hujan',i:'🌧️',steps:[
+ {t:'Hujan di Blue-Green Roof',f:['roof'],c:[45,30,30,20,5,-3],s:{w:-3.2,rain:1,tankA:15,tankB:20},
+  n:'Hujan jatuh ke atap hijau (Blue-Green Roof). Vegetasi menahan air, memperlambat limpasan, dan memberikan pendinginan evaporatif alami pada bangunan.'},
+ {t:'Filtrasi & Tangki A',f:['pipe_pathA','filter','tankA'],c:[50,25,20,38,-4,-4],s:{w:-3.2,rain:1,pMode:'pathA',tankA:40,tankB:20,x:1},
+  n:'Air mengalir melalui talang, melewati First Flush Diverter, lalu menuju unit Filtrasi Bertahap (pipa biru) sebelum masuk ke Tangki A (Air Atap).'},
+ {t:'Tangki Terisi',f:['tankA','pipe_pathA'],c:[50,25,20,38,-4,-4],s:{w:-3.2,rain:1,pMode:'pathA',tankA:85,tankB:20,x:1},
+  n:'Tangki A penampungan terisi. Air hujan disimpan untuk digunakan pada musim kemarau, mengurangi ketergantungan pada air PDAM.'},
+ {t:'3 Cabang Distribusi',f:['pipe_bee','pipe_toilet','pipe_garden','tankA'],c:[45,30,20,20,-2,-5],s:{w:-3.2,pMode:'dist',tankA:80,tankB:20,x:1},
+  n:'Dari Tangki A, air didistribusikan melalui 3 cabang pipa: Oranye (Fasad Beehive), Cyan (Flush Toilet), dan Hijau Muda (Penyiraman Taman).'}]},
+cool:{n:'Beehive Cooling',i:'🐝',steps:[
+ {t:'Aliran ke Fasad',f:['pipe_bee','facade','tankA'],c:[40,20,20,25,4,-5],s:{w:-3.2,pMode:'bee',tankA:75,x:1},
+  n:'Pipa Oranye menyalurkan air dari tangki menuju bagian atas Fasad Keramik. Bangunan transparan memperlihatkan aliran air naik ke lantai atas.'},
+ {t:'Pembasahan Keramik',f:['facade','pipe_bee'],c:[45,15,15,25,4.5,0],s:{w:-3.2,pMode:'bee',wet:1,tankA:70,x:1},
+  n:'Air menetes membasahi panel keramik berpori (Hexagonal). Warna panel berubah menjadi lebih gelap saat basah. Air tertahan di pori-pori keramik.'},
+ {t:'Penguapan & Pendinginan',f:['facade'],c:[38,10,10,25,4.5,0],s:{w:-3.2,air:1,wet:1,tankA:68,x:1},
+  n:'Udara panas (merah) masuk melewati pori keramik yang basah. Terjadi penguapan yang menyerap kalor, mengubah udara menjadi sejuk (biru). Efek pendinginan pasif tanpa AC.'},
+ {t:'Udara Sejuk ke Ruangan',f:['lib','facade'],c:[35,20,20,21,4,-1],s:{w:-3.2,air:1,wet:1,tankA:66},
+  n:'Udara sejuk dialirkan masuk ke dalam Perpustakaan. Kenyamanan termal tercapai dengan konsumsi energi yang sangat rendah.'}]},
+post:{n:'Pascabanjir',i:'🧹',steps:[
+ {t:'Pengeringan Sampah & Sedimen',f:['dryingBed','trash'],c:[-30,15,-20,-30,0,-20],s:{w:-2.6,mud:1,tankA:50,trash:0},
+  n:'Air surut. Sampah yang tertahan di saringan dipindahkan ke Tempat Pengeringan Sampah. Sedimen dari Rockflow dikeringkan di bed sebelahnya sebelum dibuang.'},
+ {t:'Pusat Pendataan',f:['hall','lib','people'],c:[0,30,50,0,3,0],s:{w:-3.2,mud:.6,tankA:50},
+  n:'Food Hall yang tetap kering (+2,6 m) beralih fungsi menjadi posko pendataan kerusakan dan distribusi bantuan logistik bagi warga yang terdampak.'},
+ {t:'Self-Healing Concrete',f:['deck','deck_crack'],c:[20,20,20,10,2.5,5],s:{w:-3.2,crack:1,heal:1,tankA:50},
+  n:'Siklus basah-kering memicu retak rambut pada dek. Bakteri di dalam beton (Self-Healing) aktif saat terkena air, memproduksi kalsit untuk menutup retakan secara mandiri.'},
+ {t:'Pulih & Beroperasi',f:['hall','lib','roof','people','track'],c:[50,35,50,0,2,0],s:{w:-3.2,crack:0,heal:0,tankA:50},
+  n:'Ruang komunal kembali beroperasi sepenuhnya. Biaya pemeliharaan ditekan berkat beton self-healing, dan aktivitas sosial-ekonomi warga kembali pulih.'}]}};
+
+// STATE & EVENT LISTENERS
 let T={...D0},mode=null,idx=0,playing=true,tm=0,follow=true,time=0,dt=0,focus=new Set(),hoverKey=null;
 const V={w:-3.2,wet:0,tankA:20,tankB:20,xray:0,mud:0,crack:0,heal:0,inflow:0,trash:0,pond:0};
-const gp=new THREE.Vector3(60,45,70),gt=new THREE.Vector3(0,-1,0);
+const gp=new THREE.Vector3(...OV.slice(0,3)),gt=new THREE.Vector3(...OV.slice(3));
 camera.position.copy(gp);controls.target.copy(gt);
+const STEP_MS=16000,xr=$('#xr'),lb=$('#lb');
+const camTo=c=>{gp.set(c[0],c[1],c[2]);gt.set(c[3],c[4],c[5])};
 
-const clock=new THREE.Clock(),tv=new THREE.Vector3();
+function goStep(i,user){const m=MODES[mode],st=m.steps[i];idx=i;tm=0;T={...D0,...st.s};
+ focus=new Set(st.f);camTo(st.c);if(user)follow=true;xr.checked=!!st.s.x||st.s.pMode!==''||st.s.w<-3;$('#info').hidden=true;
+ $('#sc').textContent=`${m.n} · Langkah ${i+1}/${m.steps.length}`;$('#st').textContent=st.t;$('#sn').textContent=st.n;
+ $('#bk').disabled=i===0;$('#nx').disabled=i===m.steps.length-1;$('#hs').textContent=`${m.n} ${i+1}/${m.steps.length}`;
+ balloonText = st.n; typedChars = 0; bContent.textContent = ""; bTitle.textContent = st.t; balloon.style.opacity = 1;
+}
+function startMode(k){mode=k;$('#step').hidden=false;playing=true;$('#pp').textContent='⏸ Jeda';
+ document.querySelectorAll('#modes button').forEach(b=>b.classList.toggle('on',b.dataset.k===k));goStep(0,true)}
+function closeMode(){mode=null;T={...D0};focus=new Set();$('#step').hidden=true;$('#hs').textContent='Standby';$('#info').hidden=true;
+ document.querySelectorAll('#modes button').forEach(b=>b.classList.remove('on')); balloon.style.opacity = 0;}
+function reset(){closeMode();xr.checked=false;lb.checked=true;Object.assign(V,{w:-3.2,wet:0,tankA:20,tankB:20,xray:0,mud:0,crack:0,heal:0,inflow:0,trash:0,pond:0});camTo(OV);camera.position.copy(gp);controls.target.copy(gt);follow=true}
+function showInfo(k){const d=INFO[k];if(!d)return;$('#it').textContent=d[0];$('#ib').textContent=d[1];$('#if').textContent=d[2];$('#info').hidden=false;
+ if(mode) closeMode(); focus=new Set([k]);if(d[4])xr.checked=true;camTo(d[3]);follow=true}
+function closeInfo(){$('#info').hidden=true;focus=new Set(mode?MODES[mode].steps[idx].f:[])}
+
+// GENERATE BUTTONS
+for(const k in MODES){const b=document.createElement('button');b.dataset.k=k;b.textContent=`${MODES[k].i} ${MODES[k].n}`;b.onclick=()=>startMode(k);$('#modes').appendChild(b)}
+$('#reset').onclick=reset;$('#cl').onclick=closeMode;
+$('#bk').onclick=()=>idx>0&&goStep(idx-1,true);$('#nx').onclick=()=>idx<MODES[mode].steps.length-1&&goStep(idx+1,true);
+$('#pp').onclick=()=>{if(!playing&&idx===MODES[mode].steps.length-1&&tm>=STEP_MS)goStep(0,true);playing=!playing;$('#pp').textContent=playing?'⏸ Jeda':'▶ Putar'};
+$('#ic').onclick=closeInfo;
+$('#col').onclick=()=>{const p=$('#panel');p.classList.toggle('collapsed');$('#col').textContent=p.classList.contains('collapsed')?'▸':'▾'};
+if(innerWidth<700)$('#col').click();
+
+controls.addEventListener('start', () => { follow = false; });
+
+const ray=new THREE.Raycaster(),mp=new THREE.Vector2();
+let dx0=0,dy0=0;
+function hit(e){mp.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);ray.setFromCamera(mp,camera);
+ for(const h of ray.intersectObjects(pick,false)){const k=h.object.userData.key;if(h.object.parent && h.object.parent.visible === false) continue; return k}return null}
+const cv=renderer.domElement;
+cv.addEventListener('pointerdown',e=>{dx0=e.clientX;dy0=e.clientY});
+cv.addEventListener('pointermove',e=>{if(e.buttons)return;hoverKey=hit(e);cv.style.cursor=hoverKey?'pointer':'grab';});
+cv.addEventListener('pointerup',e=>{if(Math.hypot(e.clientX-dx0,e.clientY-dy0)>5)return;const k=hit(e);k?showInfo(k):closeInfo()});
+function resize(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();}
+addEventListener('resize',resize);resize();
+
+const clock=new THREE.Clock(),tv=new THREE.Vector3(),grassB=new THREE.Color(C.moss),mudC=new THREE.Color(0x292524),bowlB=new THREE.Color(C.terra),bowlM=new THREE.Color(0x7c2d12);
 renderer.setAnimationLoop(()=>{
  dt=Math.min(clock.getDelta(),.05);time+=dt;
  if(mode&&playing){const n=MODES[mode].steps.length;tm+=dt*1000;if(tm>=STEP_MS){if(idx<n-1)goStep(idx+1,false);else{playing=false;tm=STEP_MS;$('#pp').textContent='▶ Ulang'}}}
@@ -575,25 +654,89 @@ renderer.setAnimationLoop(()=>{
  V.xray = mv(V.xray, isXray ? 1 : 0, 3*dt);
 
  if(V.xray > 0.5){
-    mGrass.depthWrite = false; mSoil.depthWrite = false;
+    mGrass.depthWrite = false;
  } else {
-    mGrass.depthWrite = true; mSoil.depthWrite = true;
+    mGrass.depthWrite = true;
  }
 
- mGrass.userData.b=mSoil.userData.b=1-.88*V.xray;
+ mGrass.userData.b=1-.88*V.xray;
+ mGrass.color.copy(grassB).lerp(mudC,V.mud*.8);
  
- // Animasi Tangki & Air
+ let activeCurve = null;
+ for (const [key, group] of Object.entries(pipeGroups)) { group.visible = false; }
+ if (T.pMode === 'pathA') { pipeGroups['pipe_pathA'].visible = true; activeCurve = cvA; flows.pathA.count=20; }
+ else if (T.pMode === 'pathB') { pipeGroups['pipe_pathB'].visible = true; activeCurve = cvB; flows.pathB.count=20; }
+ else if (T.pMode === 'bee') { pipeGroups['pipe_bee'].visible = true; activeCurve = cvBee; flows.bee.count=20; }
+ else if (T.pMode === 'overflow') { pipeGroups['pipe_overflow'].visible = true; activeCurve = cvOver; flows.overflow.count=20; }
+ else if (T.pMode === 'city') { pipeGroups['pipe_overflow'].visible = true; pipeGroups['pipe_city'].visible = true; activeCurve = cvOver; flows.city.count=20; }
+ else if (T.pMode === 'dist') {
+   pipeGroups['pipe_bee'].visible = true; pipeGroups['pipe_toilet'].visible = true; pipeGroups['pipe_garden'].visible = true;
+ }
+ 
+ Object.values(flows).forEach(f => { if(!T.pMode || (T.pMode==='pathA'&&f!==flows.pathA) || (T.pMode==='pathB'&&f!==flows.pathB) || (T.pMode==='bee'&&f!==flows.bee) || (T.pMode==='overflow'&&f!==flows.overflow) || (T.pMode==='city'&&f!==flows.city)) f.count=0; });
+ 
+ if (activeCurve) {
+    const f = flows[T.pMode==='pathA'?'pathA':T.pMode==='pathB'?'pathB':T.pMode==='bee'?'bee':T.pMode==='overflow'?'overflow':'city'];
+    for(let i=0; i<20; i++) {
+        const p = activeCurve.getPointAt((i/20 + time*0.1)%1);
+        dm.position.copy(p); dm.scale.setScalar(1); dm.updateMatrix(); f.setMatrixAt(i, dm.matrix);
+    }
+    f.instanceMatrix.needsUpdate = true;
+ }
+
+ pipeMaterials.forEach(m => {
+    if (T.pMode) { m.emissiveIntensity = 1.5 + Math.sin(time * 8) * 0.5; m.depthTest = false; }
+    else { m.emissiveIntensity = 0.2; m.depthTest = true; }
+ });
+
+ for(const k in G){
+   const g=G[k];
+   let targetOpacity = (!focus.size||focus.has(k)||KEEP.has(k)) ? 1 : 0.3; 
+   if (T.pMode) {
+     if (k.includes('pipe_') || k === 'tank' || k === 'rock' || k === 'filter' || k === 'pond' || k === 'tankA' || k === 'tankB') targetOpacity = 1;
+     else targetOpacity = 0.15; 
+   }
+   if (['drain','rain','cool'].includes(mode) && ['filter','tankA','tankB','pond'].includes(k)) targetOpacity = 1;
+   g.dim += (targetOpacity-g.dim)*Math.min(1,dt*6);
+   let pe = 0;
+   if(focus.has(k) && !KEEP.has(k) && !T.pMode) pe = 0.1 + 0.08*Math.sin(time*4);
+   if(hoverKey===k && !KEEP.has(k)) pe = 0.3;
+   for(const m of g.m){
+     const o=m.userData.b*g.dim;
+     m.opacity=o;
+     m.transparent=o<.995;
+     m.depthWrite=!m.transparent;
+     if(m.emissive && !k.includes('pipe_')) m.emissiveIntensity = pe;
+   }
+ }
+
+ mCrack.opacity = V.crack;
+ mCrack.emissiveIntensity = V.heal * (0.5 + 0.5*Math.sin(time*4));
+ const w=V.w;
  tankWater[0].mesh.scale.y = Math.max(.01, 2.8*V.tankA/100);
  tankWater[1].mesh.scale.y = Math.max(.01, 2.8*V.tankB/100);
  pondWater.scale.y = Math.max(.01, V.pond);
  
- const w=V.w;
+ trashItems.visible = V.trash > 0.1;
+ if (trashItems.visible) {
+    trashItems.children.forEach((c, i) => { c.position.y = Math.max(w, -3.2) + 0.1; c.rotation.x += dt*0.5; c.rotation.z += dt*0.3; });
+ }
+
  flood.visible=w>-3.1; 
  if(flood.visible){
     flood.position.y=w;
     for(let i=0;i<wpos.count;i++) wpos.setY(i,.05*Math.sin(wbx[i]*.4+time*1.6)+.04*Math.cos(wbz[i]*.5+time*1.2));
     wpos.needsUpdate=true;
  }
+
+ if(Math.abs(V.wet-lastWet)>.002){setHex(V.wet);lastWet=V.wet}
+ 
+ P.forEach((p,i)=>{let x=p.x,z=p.z,bob=0;
+  if(p.t==='j'){p.a+=dt*p.sp;x=Math.cos(p.a)*p.r;z=Math.sin(p.a)*p.r;bob=Math.abs(Math.sin(time*7+p.ph))*.08}
+  else if(p.t==='w'){x=p.x+Math.sin(time*.25*p.sp+p.ph)*p.amp;bob=Math.abs(Math.sin(time*4+p.ph))*.04}
+  const sc=p.g&&w>p.y+.15?.001:1,sit=p.s;
+  put(bodies,i,x,p.y+bob+(sit?p.sh+.38:.55),z,sc,sc*(sit?.72:1));put(heads,i,x,p.y+bob+(sit?p.sh+.86:1.22),z,sc)});
+ bodies.instanceMatrix.needsUpdate=heads.instanceMatrix.needsUpdate=true;
 
  if(T.rain){
    for(let i=0;i<rainCount;i++){
@@ -605,10 +748,26 @@ renderer.setAnimationLoop(()=>{
    }
    rainGeo.attributes.position.needsUpdate = true; rain.visible = true;
  } else rain.visible = false;
+
+ if(T.air){
+   for(let i=0;i<200;i++){
+     ax[i] -= as[i]*dt;
+     if(ax[i] < 21) { ax[i] = rnd(31,36); ay[i]=rnd(3.4,6.3); az[i]=rnd(-2.8,2.8); }
+     airPos[i*3] = ax[i]; airPos[i*3+1] = ay[i]+Math.sin(time*3+i)*.06; airPos[i*3+2] = az[i];
+     let b = Math.max(0,Math.min(1,(26-ax[i])/3));
+     ct.copy(cRed).lerp(cBlue, b);
+     airColors[i*3]=ct.r; airColors[i*3+1]=ct.g; airColors[i*3+2]=ct.b;
+   }
+   airGeo.attributes.position.needsUpdate = true; airGeo.attributes.color.needsUpdate = true; air.visible = true;
+ } else air.visible = false;
  
  const k=1-Math.exp(-dt*2.2);if(follow){camera.position.lerp(gp,k);controls.target.lerp(gt,k)}
  controls.update();
  $('#hw').textContent=(w>=0?'+':'−')+Math.abs(w).toFixed(2).replace('.',',')+' m';$('#ht').textContent=Math.round(V.tankA)+'%';
+ 
+ if(mode && balloonText) {
+     if (typedChars < balloonText.length) { typedChars += dt * 60; bContent.textContent = balloonText.slice(0, Math.floor(typedChars)); }
+ } else { balloon.style.opacity = 0; }
 
  for(const l of LB){if(!lb.checked||(l.u&&V.xray<.5)){l.e.style.display='none';continue}
   tv.set(...l.p).project(camera);if(tv.z>1){l.e.style.display='none';continue}
