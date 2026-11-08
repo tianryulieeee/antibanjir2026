@@ -71,7 +71,11 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;-webkit-fon
   font-family:'Inter',sans-serif;color:#0f172a;
   -webkit-font-smoothing:antialiased;overflow:hidden;
   background:transparent;
+  /* PERBAIKAN #1: izinkan event mouse menembus ke canvas WebGL */
+  pointer-events:none;
 }
+/* PERBAIKAN #1: panel & info tetap interaktif */
+#panel, #info {pointer-events:auto;}
 #sim-container.active{display:block}
 
 .sim-card{background:rgba(255,255,255,0.95);backdrop-filter:blur(16px);border:1px solid rgba(0,0,0,0.1);border-radius:12px;box-shadow:0 10px 25px rgba(0,0,0,0.1)}
@@ -236,7 +240,7 @@ h1{font-size:16px;line-height:1.3;margin:0 0 4px;font-weight:700}
 <div id="sim-container">
   <div id="labels"></div>
   <div id="balloon"><span class="t" id="bt">Penjelasan Sistem</span><span id="bc"></span></div>
-  
+
   <div id="panel" class="sim-card">
     <div id="ph"><span>ARCHITECTURAL SYSTEM</span><button id="col" style="padding:2px 6px;border:none;background:transparent;cursor:pointer">▾</button></div>
     <div id="pb">
@@ -259,12 +263,12 @@ h1{font-size:16px;line-height:1.3;margin:0 0 4px;font-weight:700}
       </div>
     </div>
   </div>
-  
+
   <div id="hud" class="sim-card">
     <div><span>Muka air</span><b id="hw">-3,20 m</b></div><div><span>BFE / DFE</span><b>+2,0 / +2,6 m</b></div>
     <div><span>Kapasitas</span><b id="ht">0%</b></div><div><span>Status</span><b id="hs">Standby</b></div>
   </div>
-  
+
   <div id="info" class="sim-card" hidden><button id="ic">✕</button><h4 id="it"></h4><h5>Bentuk</h5><p id="ib"></p><h5>Fungsi & Teori</h5><p id="if"></p></div>
 </div>
 
@@ -289,7 +293,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const children = s.querySelectorAll('.label, .title, .subtitle, .visual');
         children.forEach(child => {
           child.style.animation = 'none';
-          child.offsetHeight; 
+          child.offsetHeight;
           child.style.animation = '';
         });
       }
@@ -322,7 +326,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-<!-- ==================== 3D SIMULATION LOGIC (COMPLETE & FIXED) ==================== -->
+<!-- ==================== 3D SIMULATION LOGIC (FIXED) ==================== -->
 <script type="module">
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
@@ -330,17 +334,16 @@ import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 
 const $=s=>document.querySelector(s),rnd=(a,b)=>a+Math.random()*(b-a),mv=(a,b,d)=>a+Math.max(-d,Math.min(d,b-a));
 
-// PALET WARNA (SESUAI REFERENSI ARSITEKTUR)
 const C = {
-    terra: 0xc27a5c,       
-    concrete: 0xd6d3d1,    
+    terra: 0xc27a5c,
+    concrete: 0xd6d3d1,
     concreteDark: 0x78716c,
-    wood: 0x78350f,        
-    moss: 0x4d7c0f,        
-    sage: 0x65a30d,        
-    water: 0x1e3a8a,       
-    glass: 0xe2e8f0,       
-    metal: 0x475569,       
+    wood: 0x78350f,
+    moss: 0x4d7c0f,
+    sage: 0x65a30d,
+    water: 0x1e3a8a,
+    glass: 0xe2e8f0,
+    metal: 0x475569,
     cPathA: 0x2563eb, cPathB: 0xd97706, cBee: 0xb45309, cToilet: 0x0e7490, cGarden: 0x15803d, cOver: 0x7e22ce, cCity: 0x334155
 };
 
@@ -356,7 +359,7 @@ renderer.domElement.style.left = '0';
 renderer.domElement.style.zIndex = '0';
 
 const scene=new THREE.Scene();
-scene.background = new THREE.Color(0xf0f0f0); 
+scene.background = new THREE.Color(0xf0f0f0);
 scene.fog=new THREE.Fog(0xf0f0f0,150,400);
 
 const pm=new THREE.PMREMGenerator(renderer);
@@ -463,19 +466,26 @@ const roofCurve = new THREE.CatmullRomCurve3([
 const roofTube = new THREE.TubeGeometry(roofCurve, 64, 12, 8, false);
 const mRoof = mat('roof', C.moss, 1, {roughness: 1});
 const roofMesh = new THREE.Mesh(roofTube, mRoof);
-roofMesh.scale.set(1, 0.3, 1); 
-roofMesh.position.y = 2; 
+roofMesh.scale.set(1, 0.3, 1);
+roofMesh.position.y = 2;
 roofMesh.castShadow = true;
 roofMesh.userData.key = 'roof'; pick.push(roofMesh); scene.add(roofMesh);
 
+/* Kaca paviliun (dipisah per grup agar highlight fokus bekerja) */
 const mGlass = mat('hall', C.glass, 0.2, {transmission:0.9, roughness:0.05, metalness:0.1, clearcoat:1});
+const mGlassLib = mat('lib', C.glass, 0.2, {transmission:0.9, roughness:0.05, metalness:0.1, clearcoat:1});
 M(new THREE.BoxGeometry(15, 4, 10), mGlass, -20, 4.5, -10, 'hall');
-M(new THREE.BoxGeometry(15, 4, 10), mGlass, 20, 4.5, 10, 'lib');
+M(new THREE.BoxGeometry(15, 4, 10), mGlassLib, 20, 4.5, 10, 'lib');
 
-const mWood = mat('hall', C.wood, 1, {roughness: 0.8});
+/* PERBAIKAN #3: tambah mesh Fasad Beehive (agar mode Beehive Cooling punya objek) */
+const mFacade = mat('facade', 0xb45309, 1, {roughness: 0.7});
+M(new THREE.BoxGeometry(0.4, 4, 8), mFacade, 25.4, 4.5, 0, 'facade');
+
+const mWoodHall = mat('hall', C.wood, 1, {roughness: 0.8});
+const mWoodLib = mat('lib', C.wood, 1, {roughness: 0.8});
 for(let i=0; i<5; i++) {
-    bx(2, 0.8, 8, mWood, -22 + i*2, 3, -10, 'hall');
-    bx(2, 0.8, 8, mWood, 18 + i*2, 3, 10, 'lib');
+    bx(2, 0.8, 8, mWoodHall, -22 + i*2, 3, -10, 'hall');
+    bx(2, 0.8, 8, mWoodLib, 18 + i*2, 3, 10, 'lib');
 }
 
 /* ---------- KOLOM PENYANGGA ---------- */
@@ -515,9 +525,9 @@ const pondWater = M(new THREE.CylinderGeometry(5.9, 5.9, 0.4, 32), pondMat, 45, 
 pondWater.scale.y = 0.01;
 
 /* ---------- PIPA (SISTEM ALIRAN) ---------- */
-const pipeGroups = {}, pipeMaterials = []; 
+const pipeGroups = {}, pipeMaterials = [];
 function createPipe(waypoints, color, key) {
-  const group = new THREE.Group(); group.userData.key = key; group.visible = false; 
+  const group = new THREE.Group(); group.userData.key = key; group.visible = false;
   const m = new THREE.MeshStandardMaterial({ color: color, emissive: color, emissiveIntensity: 0.2, metalness: 0.9, roughness: 0.1, transparent: true, opacity: 1, depthTest: false, depthWrite: false });
   pipeMaterials.push(m);
   const curve = new THREE.CatmullRomCurve3(waypoints.map(p => new THREE.Vector3(...p)), false, 'catmullrom', 0.1);
@@ -595,7 +605,7 @@ const cRed=new THREE.Color(0xb91c1c),cBlue=new THREE.Color(0x1d4ed8),ct=new THRE
 
 const rainCount = 1500;
 const rainGeo = new THREE.BufferGeometry();
-const rainPos = new Float32Array(rainCount * 2 * 3); 
+const rainPos = new Float32Array(rainCount * 2 * 3);
 rainGeo.setAttribute('position', new THREE.BufferAttribute(rainPos, 3));
 const rain = new THREE.LineSegments(rainGeo, new THREE.LineBasicMaterial({ color: 0x64748b, transparent: true, opacity: 0.5 }));
 scene.add(rain);
@@ -676,7 +686,7 @@ const INFO={
  facade:['Fasad Beehive','Hexagon keramik porous.','Dibasahi air; penguapan mendinginkan udara.',[45,15,10,25.4,4.5,0]],
  dryingBed:['Pengeringan','Bak beton terbuka untuk sampah & sedimen.','Dijemur agar kering sebelum diangkut.',[-25,2,-20]]};
 
-let T={...D0},mode=null,idx=0,playing=true,tm=0,follow=true,time=0,dt=0,focus=new Set(),hoverKey=null;
+let T={...D0},mode=null,idx=0,playing=true,tm=0,follow=true,time=0,dt=0,focus=new Set(),hoverKey=null,lastWet=0; /* PERBAIKAN #2: lastWet dideklarasikan */
 const V={w:-3.2,wet:0,tankA:20,tankB:20,xray:0,mud:0,crack:0,heal:0,inflow:0,trash:0,pond:0};
 const gp=new THREE.Vector3(...OV.slice(0,3)),gt=new THREE.Vector3(...OV.slice(3));
 camera.position.copy(gp);controls.target.copy(gt);
@@ -723,12 +733,12 @@ renderer.setAnimationLoop(()=>{
  dt=Math.min(clock.getDelta(),.05);time+=dt;
  if(mode&&playing){const n=MODES[mode].steps.length;tm+=dt*1000;if(tm>=STEP_MS){if(idx<n-1)goStep(idx+1,false);else{playing=false;tm=STEP_MS;$('#pp').textContent='▶ Ulang'}}}
  $('#sb').style.width=mode?((idx+Math.min(tm/STEP_MS,1))/MODES[mode].steps.length*100)+'%':'0';
- 
+
  V.w=mv(V.w,T.w,.55*dt);V.tankA=mv(V.tankA,T.tankA,6*dt);V.tankB=mv(V.tankB,T.tankB,6*dt);
  V.wet=mv(V.wet,T.wet,.35*dt);V.mud=mv(V.mud,T.mud,.3*dt);
  V.crack=mv(V.crack,T.crack,1.5*dt);V.heal=mv(V.heal,T.heal,1.5*dt);V.inflow=mv(V.inflow,T.inflow||0,1.5*dt);
  V.trash=mv(V.trash,T.trash||0,2*dt); V.pond=mv(V.pond,T.pond||0,2*dt);
- 
+
  const isXray = xr.checked || T.pMode !== '';
  V.xray = mv(V.xray, isXray ? 1 : 0, 3*dt);
 
@@ -740,9 +750,13 @@ renderer.setAnimationLoop(()=>{
 
  mGrass.userData.b=1-.88*V.xray;
  mGrass.color.copy(grassB).lerp(mudC,V.mud*.8);
- 
+
  let activeCurve = null;
  for (const [key, group] of Object.entries(pipeGroups)) { group.visible = false; }
+
+ /* PERBAIKAN #5: reset SEMUA flows dulu agar tidak ada partikel "nyangkut" */
+ Object.values(flows).forEach(f => { f.count = 0; });
+
  if (T.pMode === 'pathA') { pipeGroups['pipe_pathA'].visible = true; activeCurve = cvA; flows.pathA.count=20; }
  else if (T.pMode === 'pathB') { pipeGroups['pipe_pathB'].visible = true; activeCurve = cvB; flows.pathB.count=20; }
  else if (T.pMode === 'bee') { pipeGroups['pipe_bee'].visible = true; activeCurve = cvBee; flows.bee.count=20; }
@@ -751,9 +765,7 @@ renderer.setAnimationLoop(()=>{
  else if (T.pMode === 'dist') {
    pipeGroups['pipe_bee'].visible = true; pipeGroups['pipe_toilet'].visible = true; pipeGroups['pipe_garden'].visible = true;
  }
- 
- Object.values(flows).forEach(f => { if(!T.pMode || (T.pMode==='pathA'&&f!==flows.pathA) || (T.pMode==='pathB'&&f!==flows.pathB) || (T.pMode==='bee'&&f!==flows.bee) || (T.pMode==='overflow'&&f!==flows.overflow) || (T.pMode==='city'&&f!==flows.city)) f.count=0; });
- 
+
  if (activeCurve) {
     const f = flows[T.pMode==='pathA'?'pathA':T.pMode==='pathB'?'pathB':T.pMode==='bee'?'bee':T.pMode==='overflow'?'overflow':'city'];
     for(let i=0; i<20; i++) {
@@ -770,10 +782,10 @@ renderer.setAnimationLoop(()=>{
 
  for(const k in G){
    const g=G[k];
-   let targetOpacity = (!focus.size||focus.has(k)||KEEP.has(k)) ? 1 : 0.3; 
+   let targetOpacity = (!focus.size||focus.has(k)||KEEP.has(k)) ? 1 : 0.3;
    if (T.pMode) {
      if (k.includes('pipe_') || k === 'tank' || k === 'rock' || k === 'filter' || k === 'pond' || k === 'tankA' || k === 'tankB') targetOpacity = 1;
-     else targetOpacity = 0.15; 
+     else targetOpacity = 0.15;
    }
    if (['drain','rain','cool'].includes(mode) && ['filter','tankA','tankB','pond'].includes(k)) targetOpacity = 1;
    g.dim += (targetOpacity-g.dim)*Math.min(1,dt*6);
@@ -795,21 +807,25 @@ renderer.setAnimationLoop(()=>{
  tankWater[0].mesh.scale.y = Math.max(.01, 2.8*V.tankA/100);
  tankWater[1].mesh.scale.y = Math.max(.01, 2.8*V.tankB/100);
  pondWater.scale.y = Math.max(.01, V.pond);
- 
+
  trashItems.visible = V.trash > 0.1;
  if (trashItems.visible) {
     trashItems.children.forEach((c, i) => { c.position.y = Math.max(w, -3.2) + 0.1; c.rotation.x += dt*0.5; c.rotation.z += dt*0.3; });
  }
 
- flood.visible=w>-3.1; 
+ flood.visible=w>-3.1;
  if(flood.visible){
     flood.position.y=w;
     for(let i=0;i<wpos.count;i++) wpos.setY(i,.05*Math.sin(wbx[i]*.4+time*1.6)+.04*Math.cos(wbz[i]*.5+time*1.2));
     wpos.needsUpdate=true;
  }
 
- if(Math.abs(V.wet-lastWet)>.002){setHex(V.wet);lastWet=V.wet}
- 
+ /* PERBAIKAN #4: ganti setHex() yang tidak ada dengan perubahan warna mFacade */
+ if(Math.abs(V.wet - lastWet) > 0.002){
+    mFacade.color.setHex(V.wet > 0.5 ? 0x78350f : 0xb45309);
+    lastWet = V.wet;
+ }
+
  P.forEach((p,i)=>{let x=p.x,z=p.z,bob=0;
   if(p.t==='j'){p.a+=dt*p.sp;x=Math.cos(p.a)*p.r;z=Math.sin(p.a)*p.r;bob=Math.abs(Math.sin(time*7+p.ph))*.08}
   else if(p.t==='w'){x=p.x+Math.sin(time*.25*p.sp+p.ph)*p.amp;bob=Math.abs(Math.sin(time*4+p.ph))*.04}
@@ -821,9 +837,9 @@ renderer.setAnimationLoop(()=>{
    for(let i=0;i<rainCount;i++){
      r_y[i] -= r_vel[i]*dt;
      if(r_y[i] < -3.2) { r_y[i] = rnd(20,25); r_x[i]=rnd(-50,50); r_z[i]=rnd(-40,40); }
-     const idx = i*6;
-     rainPos[idx] = r_x[i]; rainPos[idx+1] = r_y[i]; rainPos[idx+2] = r_z[i];
-     rainPos[idx+3] = r_x[i]; rainPos[idx+4] = r_y[i]-1.5; rainPos[idx+5] = r_z[i];
+     const idx2 = i*6;
+     rainPos[idx2] = r_x[i]; rainPos[idx2+1] = r_y[i]; rainPos[idx2+2] = r_z[i];
+     rainPos[idx2+3] = r_x[i]; rainPos[idx2+4] = r_y[i]-1.5; rainPos[idx2+5] = r_z[i];
    }
    rainGeo.attributes.position.needsUpdate = true; rain.visible = true;
  } else rain.visible = false;
@@ -839,11 +855,11 @@ renderer.setAnimationLoop(()=>{
    }
    airGeo.attributes.position.needsUpdate = true; airGeo.attributes.color.needsUpdate = true; air.visible = true;
  } else air.visible = false;
- 
+
  const k=1-Math.exp(-dt*2.2);if(follow){camera.position.lerp(gp,k);controls.target.lerp(gt,k)}
  controls.update();
  $('#hw').textContent=(w>=0?'+':'−')+Math.abs(w).toFixed(2).replace('.',',')+' m';$('#ht').textContent=Math.round(V.tankA)+'%';
- 
+
  if(mode && balloonText) {
      if (typedChars < balloonText.length) { typedChars += dt * 60; bContent.textContent = balloonText.slice(0, Math.floor(typedChars)); }
  } else { balloon.style.opacity = 0; }
@@ -851,7 +867,7 @@ renderer.setAnimationLoop(()=>{
  for(const l of LB){if(!lb.checked||(l.u&&V.xray<.5)){l.e.style.display='none';continue}
   tv.set(...l.p).project(camera);if(tv.z>1){l.e.style.display='none';continue}
   l.e.style.display='block';l.e.style.transform=`translate(${(tv.x*.5+.5)*innerWidth}px,${(-tv.y*.5+.5)*innerHeight}px) translate(-50%,-50%)`}
- 
+
  renderer.render(scene,camera);
 });
 </script>
